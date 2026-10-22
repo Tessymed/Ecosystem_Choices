@@ -86,12 +86,22 @@ namespace EcosystemChoices.Locomotion
             {
                 input = turnAction.action.ReadValue<Vector2>();
             }
+
+            if (input == Vector2.zero && Keyboard.current != null)
+            {
+                if (Keyboard.current.qKey.isPressed) input.x = -1.0f;
+                if (Keyboard.current.eKey.isPressed) input.x = 1.0f;
+            }
 #endif
 
             if (input == Vector2.zero && Application.isEditor)
             {
-                if (Input.GetKey(KeyCode.Q)) input.x = -1.0f;
-                if (Input.GetKey(KeyCode.E)) input.x = 1.0f;
+                try
+                {
+                    if (Input.GetKey(KeyCode.Q)) input.x = -1.0f;
+                    if (Input.GetKey(KeyCode.E)) input.x = 1.0f;
+                }
+                catch (System.InvalidOperationException) { }
             }
 
             return input;

@@ -36,6 +36,7 @@ namespace EcosystemChoices.Locomotion
         [SerializeField] private Transform handTransform;
         [SerializeField] private ContinuousLocomotion continuousLocomotion;
         [SerializeField] private LocomotionStateMachine stateMachine;
+        [SerializeField] private PathMovementConstraint pathConstraint;
 
 #if ENABLE_INPUT_SYSTEM
         [Header("Input System Fallback")]
@@ -53,6 +54,7 @@ namespace EcosystemChoices.Locomotion
         {
             if (continuousLocomotion == null) continuousLocomotion = GetComponentInParent<ContinuousLocomotion>();
             if (stateMachine == null) stateMachine = GetComponentInParent<LocomotionStateMachine>();
+            if (pathConstraint == null) pathConstraint = GetComponentInParent<PathMovementConstraint>();
 
             if (handTransform == null)
             {
@@ -123,11 +125,20 @@ namespace EcosystemChoices.Locomotion
             {
                 active = teleportAction.action.ReadValue<float>() > 0.5f;
             }
+
+            if (!active && Keyboard.current != null)
+            {
+                active = Keyboard.current.tKey.isPressed;
+            }
 #endif
 
             if (!active && Application.isEditor)
             {
-                active = Input.GetKey(KeyCode.T);
+                try
+                {
+                    active = Input.GetKey(KeyCode.T);
+                }
+                catch (System.InvalidOperationException) { }
             }
 
             return active;
@@ -156,7 +167,10 @@ namespace EcosystemChoices.Locomotion
                     landingPoint = hit.point;
 
                     float slope = Vector3.Angle(hit.normal, Vector3.up);
-                    isValidLandingPoint = slope <= maxValidSlopeAngle;
+                    bool validSlope = slope <= maxValidSlopeAngle;
+                    bool validPath = pathConstraint == null || pathConstraint.IsPositionValid(hit.point, out _);
+
+                    isValidLandingPoint = validSlope && validPath;
 
                     UpdateMarker(hit.point, hit.normal, isValidLandingPoint);
                     break;

@@ -66,6 +66,9 @@ namespace EcosystemChoices.Locomotion
         public bool IsAccelerating => isAccelerating;
         public float ExternalSpeedModifier { get; set; } = 1.0f;
 
+        [Header("Path Constraint Reference")]
+        [SerializeField] private PathMovementConstraint pathConstraint;
+
         private CharacterController characterController;
         private GroundDetector groundDetector;
         private Vector3 currentHorizontalVelocity;
@@ -77,6 +80,7 @@ namespace EcosystemChoices.Locomotion
         {
             characterController = GetComponent<CharacterController>();
             groundDetector = GetComponent<GroundDetector>();
+            if (pathConstraint == null) pathConstraint = GetComponent<PathMovementConstraint>();
 
             AutoBindOVRTransforms();
 
@@ -118,8 +122,21 @@ namespace EcosystemChoices.Locomotion
             UpdateHorizontalVelocity(targetHorizontalVelocity);
             UpdateVerticalVelocity();
 
-            Vector3 finalMoveVector = (currentHorizontalVelocity + Vector3.up * verticalVelocity) * Time.deltaTime;
-            characterController.Move(finalMoveVector);
+            Vector3 currentPos = transform.position;
+            Vector3 proposedStep = (currentHorizontalVelocity + Vector3.up * verticalVelocity) * Time.deltaTime;
+
+            if (pathConstraint != null && pathConstraint.EnableConstraint)
+            {
+                Vector3 targetPos = currentPos + proposedStep;
+                Vector3 constrainedTargetPos = pathConstraint.ConstrainPosition(currentPos, targetPos);
+                Vector3 constrainedStep = constrainedTargetPos - currentPos;
+
+                characterController.Move(constrainedStep);
+            }
+            else
+            {
+                characterController.Move(proposedStep);
+            }
         }
 
         private void SyncCharacterControllerWithHMD()
@@ -156,14 +173,28 @@ namespace EcosystemChoices.Locomotion
             {
                 input = moveAction.action.ReadValue<Vector2>();
             }
+
+            if (input == Vector2.zero && Keyboard.current != null)
+            {
+                float h = 0f, v = 0f;
+                if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) h -= 1f;
+                if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) h += 1f;
+                if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) v -= 1f;
+                if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) v += 1f;
+                input = new Vector2(h, v);
+            }
 #endif
 
-            // Keyboard WASD fallback in Unity Editor for quick testing
+            // Safe legacy input fallback (wrapped in try-catch to avoid exception when legacy input is disabled in Player Settings)
             if (input == Vector2.zero && Application.isEditor)
             {
-                float h = Input.GetAxisRaw("Horizontal");
-                float v = Input.GetAxisRaw("Vertical");
-                input = new Vector2(h, v);
+                try
+                {
+                    float h = Input.GetAxisRaw("Horizontal");
+                    float v = Input.GetAxisRaw("Vertical");
+                    input = new Vector2(h, v);
+                }
+                catch (System.InvalidOperationException) { }
             }
 
             return Vector2.ClampMagnitude(input, 1.0f);

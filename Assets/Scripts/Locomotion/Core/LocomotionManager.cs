@@ -19,6 +19,7 @@ namespace EcosystemChoices.Locomotion
         public RotationController RotationController { get; private set; }
         public GroundDetector GroundDetector { get; private set; }
         public LocomotionStateMachine StateMachine { get; private set; }
+        public PathMovementConstraint PathConstraint { get; private set; }
 
         public ComfortVignette Vignette { get; set; }
         public TeleportController TeleportController { get; set; }
@@ -30,6 +31,7 @@ namespace EcosystemChoices.Locomotion
             RotationController = GetComponent<RotationController>();
             GroundDetector = GetComponent<GroundDetector>();
             StateMachine = GetComponent<LocomotionStateMachine>();
+            PathConstraint = GetComponent<PathMovementConstraint>();
 
             Vignette = GetComponentInChildren<ComfortVignette>();
             TeleportController = GetComponentInChildren<TeleportController>();
@@ -66,7 +68,7 @@ namespace EcosystemChoices.Locomotion
             }
             catch (System.Exception ex)
             {
-                Debug.LogWarning($"[LocomotionManager] OVR splash dismissal: {ex.Message}");
+                Debug.LogWarning($"[LocomotionManager] OVR setup: {ex.Message}");
             }
 #endif
         }

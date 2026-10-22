@@ -3,8 +3,8 @@ using UnityEngine;
 namespace EcosystemChoices.Locomotion
 {
     /// <summary>
-    /// Synchronizes footstep audio based on actual distance traveled rather than a fixed timer.
-    /// Adjusts footstep cadence naturally as movement speed increases or decreases.
+    /// Provides immersive movement audio including speed-scaled footstep sounds, spatial pitch variation,
+    /// and ambient ecosystem soundscapes (rustling leaves, nature ambiance, wind breeze) as the user explores.
     /// </summary>
     [AddComponentMenu("Locomotion/Movement Audio")]
     [RequireComponent(typeof(AudioSource))]
@@ -14,34 +14,72 @@ namespace EcosystemChoices.Locomotion
         [Tooltip("Distance in meters between consecutive footstep sounds.")]
         [SerializeField] private float stepDistance = 1.4f;
 
-        [Tooltip("Array of footstep audio clips.")]
-        [SerializeField] private AudioClip[] defaultFootsteps;
+        [Tooltip("Array of footstep audio clips (e.g. grass, dirt, gravel footsteps).")]
+        [SerializeField] private AudioClip[] footstepClips;
 
         [Tooltip("Volume multiplier for footsteps.")]
         [Range(0f, 1f)]
-        [SerializeField] private float volume = 0.5f;
+        [SerializeField] private float footstepVolume = 0.5f;
+
+        [Tooltip("Randomize pitch slightly for organic footsteps (min, max).")]
+        [SerializeField] private Vector2 pitchRange = new Vector2(0.92f, 1.08f);
+
+        [Header("Ecosystem Ambient Soundscape")]
+        [Tooltip("Optional AudioSource for ambient ecosystem background audio (nature, wind, rustling leaves).")]
+        [SerializeField] private AudioSource ambientAudioSource;
+
+        [Tooltip("Ambient nature / rustling soundscape clip.")]
+        [SerializeField] private AudioClip ambientSoundscape;
+
+        [Tooltip("Target volume for ambient background soundscape.")]
+        [Range(0f, 1f)]
+        [SerializeField] private float ambientMaxVolume = 0.4f;
+
+        [Tooltip("Increase ambient audio slightly when moving through ecosystem.")]
+        [SerializeField] private bool dynamicMovementAmbiance = true;
 
         [Header("References")]
         [SerializeField] private ContinuousLocomotion continuousLocomotion;
         [SerializeField] private GroundDetector groundDetector;
 
-        private AudioSource audioSource;
+        private AudioSource footstepAudioSource;
         private Vector3 lastPosition;
         private float distanceTraveled;
+        private float currentAmbientVolume;
 
         private void Awake()
         {
-            audioSource = GetComponent<AudioSource>();
+            footstepAudioSource = GetComponent<AudioSource>();
             if (continuousLocomotion == null) continuousLocomotion = GetComponentInParent<ContinuousLocomotion>();
             if (groundDetector == null) groundDetector = GetComponentInParent<GroundDetector>();
 
             lastPosition = transform.position;
+
+            InitializeAmbientAudio();
+        }
+
+        private void InitializeAmbientAudio()
+        {
+            if (ambientAudioSource == null && ambientSoundscape != null)
+            {
+                GameObject ambientGO = new GameObject("AmbientEcosystemAudio");
+                ambientGO.transform.SetParent(transform, false);
+                ambientAudioSource = ambientGO.AddComponent<AudioSource>();
+            }
+
+            if (ambientAudioSource != null && ambientSoundscape != null)
+            {
+                ambientAudioSource.clip = ambientSoundscape;
+                ambientAudioSource.loop = true;
+                ambientAudioSource.spatialBlend = 0.3f; // Slight 3D depth, mostly stereo immersion
+                ambientAudioSource.volume = dynamicMovementAmbiance ? 0.1f : ambientMaxVolume;
+                ambientAudioSource.Play();
+            }
         }
 
         private void Update()
         {
             Vector3 currentPos = transform.position;
-            // Measure horizontal distance moved
             Vector3 horizontalDelta = currentPos - lastPosition;
             horizontalDelta.y = 0f;
 
@@ -49,7 +87,9 @@ namespace EcosystemChoices.Locomotion
             lastPosition = currentPos;
 
             bool isGrounded = groundDetector != null ? groundDetector.IsGrounded : true;
+            bool isMoving = continuousLocomotion != null ? continuousLocomotion.IsMoving : (distanceThisFrame > 0.001f);
 
+            // 1. Process Footstep cadence based on distance moved
             if (isGrounded && distanceThisFrame > 0.001f)
             {
                 distanceTraveled += distanceThisFrame;
@@ -64,17 +104,25 @@ namespace EcosystemChoices.Locomotion
             {
                 distanceTraveled = 0f;
             }
+
+            // 2. Process Dynamic Ambient Volume Scaling when moving through ecosystem
+            if (dynamicMovementAmbiance && ambientAudioSource != null && ambientAudioSource.isPlaying)
+            {
+                float targetVol = isMoving ? ambientMaxVolume : ambientMaxVolume * 0.4f;
+                currentAmbientVolume = Mathf.Lerp(ambientAudioSource.volume, targetVol, Time.deltaTime * 2.0f);
+                ambientAudioSource.volume = currentAmbientVolume;
+            }
         }
 
         private void PlayFootstepSound()
         {
-            if (defaultFootsteps == null || defaultFootsteps.Length == 0 || audioSource == null) return;
+            if (footstepClips == null || footstepClips.Length == 0 || footstepAudioSource == null) return;
 
-            AudioClip clip = defaultFootsteps[Random.Range(0, defaultFootsteps.Length)];
+            AudioClip clip = footstepClips[Random.Range(0, footstepClips.Length)];
             if (clip != null)
             {
-                audioSource.pitch = Random.Range(0.95f, 1.05f);
-                audioSource.PlayOneShot(clip, volume);
+                footstepAudioSource.pitch = Random.Range(pitchRange.x, pitchRange.y);
+                footstepAudioSource.PlayOneShot(clip, footstepVolume);
             }
         }
     }

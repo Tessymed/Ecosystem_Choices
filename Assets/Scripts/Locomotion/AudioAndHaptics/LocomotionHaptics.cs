@@ -22,26 +22,45 @@ namespace EcosystemChoices.Locomotion
         public void TriggerTeleportHaptic(bool isLeftHand = false)
         {
 #if UNITY_ANDROID || UNITY_STANDALONE_WIN
-            OVRInput.Controller controller = isLeftHand ? OVRInput.Controller.LTouch : OVRInput.Controller.RTouch;
-            OVRInput.SetControllerVibration(teleportFrequency, teleportAmplitude, controller);
-            Invoke(nameof(StopVibration), teleportDuration);
+            try
+            {
+                OVRInput.Controller controller = isLeftHand ? OVRInput.Controller.LTouch : OVRInput.Controller.RTouch;
+                if (OVRInput.IsControllerConnected(controller))
+                {
+                    OVRInput.SetControllerVibration(teleportFrequency, teleportAmplitude, controller);
+                    Invoke(nameof(StopVibration), teleportDuration);
+                }
+            }
+            catch (System.Exception) { }
 #endif
         }
 
         public void TriggerFootstepHaptic()
         {
 #if UNITY_ANDROID || UNITY_STANDALONE_WIN
-            OVRInput.SetControllerVibration(0.2f, footstepAmplitude, OVRInput.Controller.LTouch);
-            OVRInput.SetControllerVibration(0.2f, footstepAmplitude, OVRInput.Controller.RTouch);
-            Invoke(nameof(StopVibration), footstepDuration);
+            try
+            {
+                if (OVRInput.IsControllerConnected(OVRInput.Controller.LTouch))
+                    OVRInput.SetControllerVibration(0.2f, footstepAmplitude, OVRInput.Controller.LTouch);
+                if (OVRInput.IsControllerConnected(OVRInput.Controller.RTouch))
+                    OVRInput.SetControllerVibration(0.2f, footstepAmplitude, OVRInput.Controller.RTouch);
+                Invoke(nameof(StopVibration), footstepDuration);
+            }
+            catch (System.Exception) { }
 #endif
         }
 
         private void StopVibration()
         {
 #if UNITY_ANDROID || UNITY_STANDALONE_WIN
-            OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.LTouch);
-            OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.RTouch);
+            try
+            {
+                if (OVRInput.IsControllerConnected(OVRInput.Controller.LTouch))
+                    OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.LTouch);
+                if (OVRInput.IsControllerConnected(OVRInput.Controller.RTouch))
+                    OVRInput.SetControllerVibration(0, 0, OVRInput.Controller.RTouch);
+            }
+            catch (System.Exception) { }
 #endif
         }
     }
