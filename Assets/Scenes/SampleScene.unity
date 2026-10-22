@@ -340,6 +340,160 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &801761840
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 801761844}
+  - component: {fileID: 801761843}
+  - component: {fileID: 801761842}
+  - component: {fileID: 801761841}
+  - component: {fileID: 801761845}
+  - component: {fileID: 801761847}
+  m_Layer: 0
+  m_Name: BiodiversityManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &801761841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 801761840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b764418b122623f45a5ea739dcd101e9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EcosystemChoices.Biodiversity.InsectLineSpawner
+  insectPrefabs:
+  - {fileID: 6407759822740451717, guid: 7241ac4d876d13f4bb0594727894e386, type: 3}
+  - {fileID: 8462615522581874713, guid: 68376c4c23487ad4f916f316d6118ce2, type: 3}
+  playerTransform: {fileID: 0}
+  pathLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  useTimerTrigger: 1
+  minSpawnInterval: 20
+  maxSpawnInterval: 50
+  useDistanceTrigger: 1
+  spawnDistanceInterval: 25
+  spawnAheadDistance: 10
+  pathCrossingWidth: 14
+  crawlSpeedRange: {x: 0.4, y: 0.8}
+  bushSearchRadius: 4
+  coverLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+--- !u!114 &801761842
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 801761840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18d874496aec9fa40aff03a4b816948a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EcosystemChoices.Biodiversity.BirdFlockSpawner
+  birdFlockPrefabs:
+  - {fileID: 4202421584597805128, guid: 8bb0119f8344e594bac1d954af642711, type: 3}
+  playerTransform: {fileID: 0}
+  useTimerTrigger: 1
+  minSpawnInterval: 15
+  maxSpawnInterval: 45
+  useDistanceTrigger: 1
+  spawnDistanceInterval: 35
+  minHeightOffset: 10
+  maxHeightOffset: 25
+  spawnDistanceAhead: 30
+  speedRange: {x: 10, y: 18}
+--- !u!114 &801761843
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 801761840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 717ec01306deaf54b9a49b369f80b951, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EcosystemChoices.Biodiversity.BiodiversityManager
+  enableBirds: 1
+  enableInsects: 1
+  enableButterflies: 1
+  globalActivityDensity: 1
+  birdSpawner: {fileID: 0}
+  insectSpawner: {fileID: 0}
+  butterflySpawner: {fileID: 0}
+--- !u!4 &801761844
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 801761840}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 132.28949, y: 19.05278, z: 291.9698}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &801761845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 801761840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d594aefcc94e63244a50c8a64639c92a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EcosystemChoices.Biodiversity.ButterflySpawner
+  butterflyPrefabs:
+  - {fileID: 8474445323779835239, guid: 3c93fa10fc82e2b40a6e0722c58f4d5c, type: 3}
+  playerTransform: {fileID: 0}
+  pathConstraint: {fileID: 0}
+  minSpawnInterval: 12
+  maxSpawnInterval: 35
+  spawnDistanceAhead: 12
+  sideSpreadDistance: 15
+  flightHeightRange: {x: 1, y: 3.5}
+  maxClusterSize: 3
+--- !u!114 &801761847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 801761840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0475af00d09e73f40bc53b3daac9b0b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EcosystemChoices.Biodiversity.ProceduralInsectAnimator
+  gaitType: 1
+  crawlFrequency: 18
+  bodyWiggleAngle: 5
+  bodyRollAngle: 3
+  verticalBobHeight: 0.006
+  animateLegBones: 1
+  legSwingAngle: 18
+  wavePhaseStep: 0.45
+  leftLegs: []
+  rightLegs: []
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -456,8 +610,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EcosystemChoices.Locomotion.MovementAudio
   stepDistance: 1.4
-  defaultFootsteps: []
-  volume: 0.5
+  footstepClips: []
+  footstepVolume: 0.5
+  pitchRange: {x: 0.92, y: 1.08}
+  ambientAudioSource: {fileID: 0}
+  ambientSoundscape: {fileID: 0}
+  ambientMaxVolume: 0.4
+  dynamicMovementAmbiance: 1
   continuousLocomotion: {fileID: 0}
   groundDetector: {fileID: 0}
 --- !u!82 &1349539506
@@ -584,6 +743,7 @@ MonoBehaviour:
   handTransform: {fileID: 0}
   continuousLocomotion: {fileID: 0}
   stateMachine: {fileID: 0}
+  pathConstraint: {fileID: 0}
   teleportAction:
     m_UseReference: 0
     m_Action:
@@ -703,6 +863,9 @@ MonoBehaviour:
   referenceSource: 0
   hmdTransform: {fileID: 0}
   controllerTransform: {fileID: 0}
+  defaultEyeHeight: 1.75
+  minCapsuleHeight: 1
+  maxCapsuleHeight: 2.2
   gravity: -9.81
   groundedGroundedGravity: -2
   slowSlopeAngleThreshold: 30
@@ -719,6 +882,7 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: 0}
+  pathConstraint: {fileID: 0}
 --- !u!143 &1349539514
 CharacterController:
   m_ObjectHideFlags: 0
@@ -744,6 +908,32 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 1.5, z: 0}
+--- !u!114 &1349539515
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1349539503}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7d8c45505cb3824f82d4302e5ebbaf3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EcosystemChoices.Locomotion.PathMovementConstraint
+  enableConstraint: 1
+  constraintType: 2
+  pathLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  targetTerrain: {fileID: 1583029311}
+  pathTerrainLayerIndex: 0
+  pathTerrainLayerName: 
+  minPaintedWeight: 0.1
+  allowedBleedDistance: 1.2
+  pathSearchRadius: 10
+  raycastStartHeight: 2
+  raycastDistance: 10
+  invertRestriction: 0
 --- !u!1 &1460339280
 GameObject:
   m_ObjectHideFlags: 0
@@ -803,7 +993,7 @@ TerrainCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 128
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -915,7 +1105,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 260
+      value: 424.27
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: m_LocalPosition.y
@@ -923,23 +1113,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 285.8
+      value: 442.66
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: -0.16627434
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: 0.9860796
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -947,7 +1137,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: 199.143
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -1006,6 +1196,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 100004, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1349539504}
+    - targetCorrespondingSourceObject: {fileID: 100004, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1349539515}
     - targetCorrespondingSourceObject: {fileID: 100006, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1723174184}
@@ -1186,3 +1379,4 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 1583029312}
   - {fileID: 1723174175}
+  - {fileID: 801761844}
