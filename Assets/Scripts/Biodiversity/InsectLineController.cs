@@ -22,8 +22,18 @@ namespace EcosystemChoices.Biodiversity
         }
 
         [Header("Movement Settings")]
-        [Tooltip("Crawling speed in meters per second.")]
-        [SerializeField] private float crawlSpeed = 0.5f;
+        [Tooltip("Crawling speed in meters per second (default: 0.14 m/s for natural calm millipede crawl).")]
+        [SerializeField] private float crawlSpeed = 0.14f;
+
+        [Tooltip("Multiplier for global crawling speed scaling.")]
+        [Range(0.05f, 2.5f)]
+        [SerializeField] private float speedMultiplier = 1.0f;
+
+        [Tooltip("Sync animator playback speed proportional to crawlSpeed so leg ripple gait matches ground speed.")]
+        [SerializeField] private bool syncAnimationSpeed = true;
+
+        [Tooltip("Base speed reference at which animator plays at 1.0x (m/s).")]
+        [SerializeField] private float referenceAnimationSpeed = 0.15f;
 
         [Tooltip("Layer mask for terrain/ground alignment.")]
         [SerializeField] private LayerMask groundLayer = ~0;
@@ -111,6 +121,36 @@ namespace EcosystemChoices.Biodiversity
         public float BodyHalfLength { get => bodyHalfLength; set => bodyHalfLength = value; }
         public ControllerState State => currentState;
         public GameObject ModelSubtree { get => antModelSubtree; set => antModelSubtree = value; }
+
+        public float CrawlSpeed
+        {
+            get => crawlSpeed;
+            set
+            {
+                crawlSpeed = value;
+                UpdateAnimatorSpeed();
+            }
+        }
+
+        public float SpeedMultiplier
+        {
+            get => speedMultiplier;
+            set
+            {
+                speedMultiplier = value;
+                UpdateAnimatorSpeed();
+            }
+        }
+
+        public float EffectiveSpeed => crawlSpeed * speedMultiplier;
+
+        public void UpdateAnimatorSpeed()
+        {
+            if (syncAnimationSpeed && animator != null)
+            {
+                animator.speed = Mathf.Clamp(EffectiveSpeed / referenceAnimationSpeed, 0.2f, 2.5f);
+            }
+        }
 
         private void Awake()
         {
@@ -355,6 +395,7 @@ namespace EcosystemChoices.Biodiversity
         public void InitializeCrossing(Vector3 startPoint, Vector3 endPoint, float speedOverride = -1f)
         {
             if (speedOverride > 0f) crawlSpeed = speedOverride;
+            UpdateAnimatorSpeed();
 
             Vector3 moveDirection = endPoint - startPoint;
             moveDirection.y = 0f;
@@ -385,6 +426,7 @@ namespace EcosystemChoices.Biodiversity
             if (animator != null)
             {
                 animator.enabled = true;
+                UpdateAnimatorSpeed();
                 if (!string.IsNullOrEmpty(crawlAnimationBool))
                 {
                     SafeSetAnimBool(animator, crawlAnimationBool, true);
@@ -444,7 +486,7 @@ namespace EcosystemChoices.Biodiversity
             currentVelocityDirection.Normalize();
 
             // 3. Check for hard collision ahead and slide along obstacle surface if blocked
-            float stepDistance = crawlSpeed * Time.deltaTime;
+            float stepDistance = EffectiveSpeed * Time.deltaTime;
             Vector3 moveStep = currentVelocityDirection * stepDistance;
 
             if (DetectHardObstacle(currentPos, currentVelocityDirection, stepDistance * 1.5f, out Vector3 obstacleNormal))

@@ -53,8 +53,16 @@ namespace EcosystemChoices.Biodiversity
         [Tooltip("Width of path crossing corridor (meters) to extend into off-trail vegetation.")]
         [SerializeField] private float pathCrossingWidth = 14.0f;
 
-        [Tooltip("Crawling speed range (min, max m/s).")]
-        [SerializeField] private Vector2 crawlSpeedRange = new Vector2(0.4f, 0.7f);
+        [Header("Crawling Speed Controls")]
+        [Tooltip("If true, spawned insects preserve their own prefab's configured crawl speed (e.g. slow millipede vs fast ant). If false, overrides with crawlSpeedRange.")]
+        [SerializeField] private bool usePrefabCrawlSpeed = false;
+
+        [Tooltip("Crawling speed range (min, max m/s) when overriding (default: 0.08 to 0.18 m/s for natural calm crawling).")]
+        [SerializeField] private Vector2 crawlSpeedRange = new Vector2(0.08f, 0.18f);
+
+        [Tooltip("Master speed multiplier applied to all spawned insects.")]
+        [Range(0.1f, 3.0f)]
+        [SerializeField] private float speedMultiplier = 1.0f;
 
         [Tooltip("Search radius (meters) around trail edges to snap start/end points into nearby bushes/shrubs.")]
         [SerializeField] private float bushSearchRadius = 4.0f;
@@ -210,11 +218,15 @@ namespace EcosystemChoices.Biodiversity
                 controller = insectInstance.AddComponent<InsectLineController>();
             }
 
-            float speed = Random.Range(crawlSpeedRange.x, crawlSpeedRange.y);
+            float speed = usePrefabCrawlSpeed ? -1f : (Random.Range(crawlSpeedRange.x, crawlSpeedRange.y) * speedMultiplier);
             controller.InitializeCrossing(startPos, endPos, speed);
 
             activeInsects.Add(controller);
         }
+
+        public float SpeedMultiplier { get => speedMultiplier; set => speedMultiplier = value; }
+        public Vector2 CrawlSpeedRange { get => crawlSpeedRange; set => crawlSpeedRange = value; }
+        public bool UsePrefabCrawlSpeed { get => usePrefabCrawlSpeed; set => usePrefabCrawlSpeed = value; }
 
         /// <summary>
         /// Searches for a nearby bush, shrub, or vegetation model to anchor natural entry/exit points.

@@ -19,10 +19,14 @@ namespace EcosystemChoices.Biodiversity
         [Tooltip("Enable butterfly fluttering in green flora areas.")]
         [SerializeField] private bool enableButterflies = true;
 
-        [Header("Global Density Multiplier")]
+        [Header("Global Density & Speed Controls")]
         [Tooltip("Activity frequency multiplier (1.0 = normal, 2.0 = double frequency, 0.5 = half frequency).")]
         [Range(0.2f, 3.0f)]
         [SerializeField] private float globalActivityDensity = 1.0f;
+
+        [Tooltip("Global speed multiplier for crawling millipedes and insects.")]
+        [Range(0.1f, 3.0f)]
+        [SerializeField] private float insectSpeedMultiplier = 1.0f;
 
         [Header("Subsystem References")]
         [SerializeField] private BirdFlockSpawner birdSpawner;
@@ -65,6 +69,16 @@ namespace EcosystemChoices.Biodiversity
             set => globalActivityDensity = Mathf.Clamp(value, 0.2f, 3.0f);
         }
 
+        public float InsectSpeedMultiplier
+        {
+            get => insectSpeedMultiplier;
+            set
+            {
+                insectSpeedMultiplier = Mathf.Clamp(value, 0.1f, 3.0f);
+                if (insectSpawner != null) insectSpawner.SpeedMultiplier = insectSpeedMultiplier;
+            }
+        }
+
         private void Awake()
         {
             if (birdSpawner == null) birdSpawner = GetComponentInChildren<BirdFlockSpawner>();
@@ -83,7 +97,11 @@ namespace EcosystemChoices.Biodiversity
         public void ApplySettings()
         {
             if (birdSpawner != null) birdSpawner.enabled = enableBirds;
-            if (insectSpawner != null) insectSpawner.enabled = enableInsects;
+            if (insectSpawner != null)
+            {
+                insectSpawner.enabled = enableInsects;
+                insectSpawner.SpeedMultiplier = insectSpeedMultiplier;
+            }
             if (butterflySpawner != null) butterflySpawner.enabled = enableButterflies;
         }
 

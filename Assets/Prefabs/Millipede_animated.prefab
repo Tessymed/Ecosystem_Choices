@@ -1267,7 +1267,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 1c0fe4c60d5cd91448b6b53d799dd94e, type: 2}
+  - {fileID: 2100000, guid: afc33a863384bc34ebd0997f04233f89, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2798,7 +2798,7 @@ Transform:
   m_Children:
   - {fileID: 8566728168260529664}
   m_Father: {fileID: 9095845556592530083}
-  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3994195016231949570
 GameObject:
   m_ObjectHideFlags: 0
@@ -5853,16 +5853,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69524c0ec4ad83549bf043c320b7fff8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EcosystemChoices.Biodiversity.InsectLineController
-  crawlSpeed: 0.6
+  crawlSpeed: 0.14
+  speedMultiplier: 1
+  syncAnimationSpeed: 1
+  referenceAnimationSpeed: 0.15
   groundLayer:
     serializedVersion: 2
     m_Bits: 4294967295
   groundOffset: 0.001
   autoCalculateGroundOffset: 1
-  bodyHalfLength: 0.13
-  bodyHalfWidth: 0.015
-  turnSpeed: 8
-  contourAlignmentSpeed: 16
+  bodyHalfLength: 0.15
+  turnSpeed: 6
+  contourAlignmentSpeed: 9
+  heightSmoothRate: 12
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -5873,7 +5876,7 @@ MonoBehaviour:
   burrowDuration: 1.6
   burrowPitchAngle: 18
   burrowSinkDepth: 0.15
-  maxLifetimeSeconds: 75
+  maxLifetimeSeconds: 60
   antModelSubtree: {fileID: 3974130525177147577}
   modelRotationOffset: {x: 0, y: -90, z: 0}
   animator: {fileID: 0}
@@ -5881,7 +5884,7 @@ MonoBehaviour:
   useProceduralFallback: 0
   audioSource: {fileID: 0}
   crawlingSound: {fileID: 0}
-  audioVolume: 0.5
+  audioVolume: 0.4
 --- !u!1 &8465776324176877078
 GameObject:
   m_ObjectHideFlags: 0

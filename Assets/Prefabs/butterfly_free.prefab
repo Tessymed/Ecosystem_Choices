@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 22812c893f54b7e4dbaf03cd4ad93a4d, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.1
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 22812c893f54b7e4dbaf03cd4ad93a4d, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.1
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 22812c893f54b7e4dbaf03cd4ad93a4d, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.1
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 22812c893f54b7e4dbaf03cd4ad93a4d, type: 3}
       propertyPath: m_LocalPosition.x
@@ -76,6 +76,31 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: -8045335485149860571}
   m_SourcePrefab: {fileID: 100100000, guid: 22812c893f54b7e4dbaf03cd4ad93a4d, type: 3}
+--- !u!4 &1952351801338678588 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7080234003331151114, guid: 22812c893f54b7e4dbaf03cd4ad93a4d, type: 3}
+  m_PrefabInstance: {fileID: 8744353091950950454}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2857052436495946061 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -2378915714438108805, guid: 22812c893f54b7e4dbaf03cd4ad93a4d, type: 3}
+  m_PrefabInstance: {fileID: 8744353091950950454}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2867958888965503694 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -2407411887602580744, guid: 22812c893f54b7e4dbaf03cd4ad93a4d, type: 3}
+  m_PrefabInstance: {fileID: 8744353091950950454}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &3415782620436100014 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6214231898086493080, guid: 22812c893f54b7e4dbaf03cd4ad93a4d, type: 3}
+  m_PrefabInstance: {fileID: 8744353091950950454}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &8151264374648336538 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8627431184203855700, guid: 22812c893f54b7e4dbaf03cd4ad93a4d, type: 3}
+  m_PrefabInstance: {fileID: 8744353091950950454}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &8474445323779835239 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 22812c893f54b7e4dbaf03cd4ad93a4d, type: 3}
@@ -93,13 +118,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc5d6dc3f067029468281dec39a146cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EcosystemChoices.Biodiversity.ProceduralButterflyController
-  flapFrequency: 14
-  maxFlapAngle: 55
-  leftWing: {fileID: 0}
-  rightWing: {fileID: 0}
-  flightSpeed: 2.2
-  turbulenceScale: 1.5
-  modelRotationOffset: {x: 0, y: 0, z: 0}
+  leftUpperWing: {fileID: 9131815319243824337}
+  leftLowerWing: {fileID: 3415782620436100014}
+  rightUpperWing: {fileID: 2857052436495946061}
+  rightLowerWing: {fileID: 8151264374648336538}
+  leftWingTip: {fileID: 1952351801338678588}
+  rightWingTip: {fileID: 2867958888965503694}
+  flapFrequency: 11
+  maxFlapAngle: 48
+  lowerWingPhaseLag: 0.45
+  flapRotationAxis: {x: 0, y: 0, z: 1}
+  randomizeColor: 1
+  wingColorPalette:
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 1.05, g: 0.92, b: 0.75, a: 1}
+  - {r: 1.1, g: 0.82, b: 0.65, a: 1}
+  - {r: 0.95, g: 0.95, b: 1.05, a: 1}
+  - {r: 1, g: 0.85, b: 0.95, a: 1}
+  flightSpeed: 1.8
+  turbulenceScale: 1.3
+  modelRotationOffset: {x: -90, y: 0, z: 0}
+  flightPitchAngle: 6
   maxLifetimeSeconds: 35
+  meanderRadius: 7
+  plantDwellTimeRange: {x: 4, y: 9}
   audioSource: {fileID: 0}
   flutterSound: {fileID: 0}
+--- !u!4 &9131815319243824337 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8655752009838975769, guid: 22812c893f54b7e4dbaf03cd4ad93a4d, type: 3}
+  m_PrefabInstance: {fileID: 8744353091950950454}
+  m_PrefabAsset: {fileID: 0}

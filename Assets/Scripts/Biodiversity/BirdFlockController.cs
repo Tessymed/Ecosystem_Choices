@@ -46,6 +46,7 @@ namespace EcosystemChoices.Biodiversity
         private bool isFlying;
 
         public Vector3 ModelRotationOffset { get => modelRotationOffset; set => modelRotationOffset = value; }
+        public AudioClip FlightSound { get => flightSound; set => flightSound = value; }
 
         private void Awake()
         {
@@ -74,10 +75,11 @@ namespace EcosystemChoices.Biodiversity
         /// <summary>
         /// Initializes and launches the bird flock flight path.
         /// </summary>
-        public void InitializeFlight(Vector3 direction, float speedOverride = -1f)
+        public void InitializeFlight(Vector3 direction, float speedOverride = -1f, AudioClip soundOverride = null)
         {
             flightDirection = direction.normalized;
             if (speedOverride > 0f) flightSpeed = speedOverride;
+            if (soundOverride != null) flightSound = soundOverride;
 
             startPosition = transform.position;
             currentLifetime = 0f;

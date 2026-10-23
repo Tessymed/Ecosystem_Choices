@@ -380,6 +380,10 @@ MonoBehaviour:
   pathLayer:
     serializedVersion: 2
     m_Bits: 4294967295
+  coverLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  maxConcurrentInsects: 2
   useTimerTrigger: 1
   minSpawnInterval: 20
   maxSpawnInterval: 50
@@ -387,11 +391,10 @@ MonoBehaviour:
   spawnDistanceInterval: 25
   spawnAheadDistance: 10
   pathCrossingWidth: 14
-  crawlSpeedRange: {x: 0.4, y: 0.8}
+  usePrefabCrawlSpeed: 0
+  crawlSpeedRange: {x: 0.08, y: 0.18}
+  speedMultiplier: 1
   bushSearchRadius: 4
-  coverLayer:
-    serializedVersion: 2
-    m_Bits: 4294967295
 --- !u!114 &801761842
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -416,6 +419,7 @@ MonoBehaviour:
   maxHeightOffset: 25
   spawnDistanceAhead: 30
   speedRange: {x: 10, y: 18}
+  flockSound: {fileID: 8300000, guid: 95d01e3e21cf400cbd1e6e132e86658a, type: 3}
 --- !u!114 &801761843
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -432,6 +436,7 @@ MonoBehaviour:
   enableInsects: 1
   enableButterflies: 1
   globalActivityDensity: 1
+  insectSpeedMultiplier: 1
   birdSpawner: {fileID: 0}
   insectSpawner: {fileID: 0}
   butterflySpawner: {fileID: 0}
@@ -466,12 +471,18 @@ MonoBehaviour:
   - {fileID: 8474445323779835239, guid: 3c93fa10fc82e2b40a6e0722c58f4d5c, type: 3}
   playerTransform: {fileID: 0}
   pathConstraint: {fileID: 0}
-  minSpawnInterval: 12
-  maxSpawnInterval: 35
-  spawnDistanceAhead: 12
-  sideSpreadDistance: 15
-  flightHeightRange: {x: 1, y: 3.5}
-  maxClusterSize: 3
+  minClusterSize: 1
+  maxClusterSize: 5
+  minSpawnInterval: 10
+  maxSpawnInterval: 30
+  spawnDistanceAhead: 14
+  sideSpreadDistance: 16
+  scatterRadius: 15
+  plantSearchRadius: 7
+  vegetationLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  flightHeightRange: {x: 1.2, y: 3.2}
 --- !u!114 &801761847
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -609,16 +620,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7ca9960ce8cca3419fa1021b26a0cf1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EcosystemChoices.Locomotion.MovementAudio
-  stepDistance: 1.4
+  continuousFootstepClip: {fileID: 8300000, guid: 54f3943c2bf24f11abb29baa5b662ca4, type: 3}
   footstepClips: []
-  footstepVolume: 0.5
-  pitchRange: {x: 0.92, y: 1.08}
+  playbackMode: 2
+  footstepVolume: 0.55
+  minMoveSpeed: 0.08
+  referenceWalkSpeed: 2.2
+  pitchRange: {x: 0.88, y: 1.22}
+  footstepFadeInSpeed: 9
+  footstepFadeOutSpeed: 7.5
+  stepDistance: 1.4
   ambientAudioSource: {fileID: 0}
-  ambientSoundscape: {fileID: 0}
-  ambientMaxVolume: 0.4
+  ambientSoundscape: {fileID: 8300000, guid: 62f02f797879467c8bb927901ce7b84a, type: 3}
+  ambientMaxVolume: 0.38
+  enableOrganicAtmosphere: 1
+  ambientWaveCycle1: 17.5
+  ambientWaveCycle2: 29
+  ambientWaveDepth: 0.18
+  ambientPitchDrift: 0.015
   dynamicMovementAmbiance: 1
+  movementAmbianceBoost: 1.25
+  canopyBirdClip: {fileID: 8300000, guid: 95d01e3e21cf400cbd1e6e132e86658a, type: 3}
+  enableCanopyBirds: 1
+  canopyBirdVolume: 0.42
+  canopyCallInterval: {x: 8, y: 20}
+  canopyBirdDistance: {x: 9, y: 22}
+  canopyBirdHeight: {x: 4.5, y: 11}
   continuousLocomotion: {fileID: 0}
   groundDetector: {fileID: 0}
+  autoEnsureAudioListener: 1
 --- !u!82 &1349539506
 AudioSource:
   m_ObjectHideFlags: 0

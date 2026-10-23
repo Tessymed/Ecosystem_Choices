@@ -93,7 +93,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69524c0ec4ad83549bf043c320b7fff8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EcosystemChoices.Biodiversity.InsectLineController
-  crawlSpeed: 0.6
+  crawlSpeed: 0.14
+  speedMultiplier: 1
+  syncAnimationSpeed: 1
+  referenceAnimationSpeed: 0.15
   groundLayer:
     serializedVersion: 2
     m_Bits: 4294967295

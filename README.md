@@ -135,11 +135,15 @@ Open `Assets/Scenes/SampleScene.unity` and enter Play Mode:
 - [x] Point of Interest (POI) observation zones and velocity damping.
 - [x] Dynamic comfort vignette overlay.
 - [x] Terrain-painted splatmap path constraint with smooth edge repulsion.
-- [x] Avian 3D boids flocking system with obstacle clearance.
-- [x] Procedural butterfly flight simulation with Perlin turbulence and landing states.
-- [x] Terrain-contouring ground crawler simulation with obstacle feelers and burrowing sequence.
+- [x] Avian 3D boids flocking system with obstacle clearance and 3D spatial flight audio.
+- [x] Procedural butterfly flight simulation with horizontal flight orientation, organic wing fluttering, weighted cluster spawning, and plant-to-plant flora meandering.
+- [x] Double-sided URP alpha-clip wing materials and multi-hue butterfly color variations.
+- [x] Terrain-contouring ground crawler simulation with calm millipede pacing (~0.14 m/s), synchronized leg gait ripple, inspector speed sliders, obstacle feelers, and burrowing lifecycle.
+- [x] Immersive ecosystem audio architecture:
+  - Velocity-scaled continuous footsteps on forest gravel/grass with acceleration pitch modulation and zero sound on stop.
+  - Dynamic organic ambience with multi-frequency breathing LFO flows, wavelength breeze swells, and movement reactivity.
+  - 3D spatial tree canopy bird calls and sky flock flyby binaural soundscape.
 - [x] Quest Link OpenXR stability optimization (elimination of mobile AR conflicts).
-- [ ] Material and shader setup for butterfly visual fidelity.
 - [ ] Interactive ecological choice cards and specimen data UI.
 - [ ] Multi-zone biome transitions (Wetlands, Forest Canopy, Grasslands).
 - [ ] Dynamic weather & diurnal day/night cycles.

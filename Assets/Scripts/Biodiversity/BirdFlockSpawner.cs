@@ -45,9 +45,15 @@ namespace EcosystemChoices.Biodiversity
         [Tooltip("Flight speed range (min, max).")]
         [SerializeField] private Vector2 speedRange = new Vector2(10.0f, 18.0f);
 
+        [Header("Audio")]
+        [Tooltip("Optional 3D audio clip played by the flock in flight (e.g. Birds_At_4am).")]
+        [SerializeField] private AudioClip flockSound;
+
         private float nextSpawnTime;
         private Vector3 lastPlayerPosition;
         private float accumulatedDistance;
+
+        public AudioClip FlockSound { get => flockSound; set => flockSound = value; }
 
         private void Awake()
         {
@@ -140,7 +146,7 @@ namespace EcosystemChoices.Biodiversity
             }
 
             float speed = Random.Range(speedRange.x, speedRange.y);
-            controller.InitializeFlight(flightDir, speed);
+            controller.InitializeFlight(flightDir, speed, flockSound);
         }
 
         private void OnDrawGizmosSelected()
