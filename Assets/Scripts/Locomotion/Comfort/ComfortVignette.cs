@@ -39,7 +39,8 @@ namespace EcosystemChoices.Locomotion
         {
             if (continuousLocomotion == null)
             {
-                continuousLocomotion = GetComponentInParent<ContinuousLocomotion>();
+                continuousLocomotion = GetComponent<ContinuousLocomotion>();
+                if (continuousLocomotion == null) continuousLocomotion = GetComponentInParent<ContinuousLocomotion>();
             }
 
             CreateVignetteTexture();

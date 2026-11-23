@@ -248,6 +248,13 @@ namespace EcosystemChoices.Locomotion
                 }
             }
 
+            // C. Check Wooden Bridge Surfaces (bridges are designated paths across waterways)
+            if (EcosystemChoices.Environment.WoodenBridgeSurface.IsPointOnAnyBridge(position, out Vector3 bridgePoint))
+            {
+                pathPoint = bridgePoint;
+                return true;
+            }
+
             return false;
         }
 
@@ -311,6 +318,19 @@ namespace EcosystemChoices.Locomotion
                         closestPoint = closest;
                         foundAny = true;
                     }
+                }
+            }
+
+            // Check Wooden Bridge Surfaces
+            var activeBridges = EcosystemChoices.Environment.WoodenBridgeSurface.ActiveBridges;
+            for (int i = 0; i < activeBridges.Count; i++)
+            {
+                var bridge = activeBridges[i];
+                if (bridge != null && bridge.ContainsPoint(position))
+                {
+                    closestPoint = position;
+                    minDistance = 0f;
+                    return true;
                 }
             }
 

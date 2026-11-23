@@ -1,155 +1,183 @@
-# Ecosystem Choices - XR Locomotion & Ecological Simulation Prototype
+# Ecosystem Choices - XR Locomotion, Biodiversity & Ecological Simulation
 
-[![Unity 6](https://img.shields.io/badge/Unity-6000.5.0f1-blue.svg)](https://unity.com/)
+[![Unity 6](https://img.shields.io/badge/Unity-6000.6.10f1-blue.svg)](https://unity.com/)
 [![Render Pipeline](https://img.shields.io/badge/URP-Universal%20Render%20Pipeline-brightgreen.svg)](https://unity.com/srp/Universal-Render-Pipeline)
-[![Platform](https://img.shields.io/badge/Target-Meta%20Quest%20%7C%20OpenXR-0082FB.svg)](https://www.meta.com/quest/)
+[![Target Platform](https://img.shields.io/badge/Target-Meta%20Quest%203%20%7C%20OpenXR-0082FB.svg)](https://www.meta.com/quest/quest-3/)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
 
-An immersive Virtual Reality (VR) prototype designed for Meta Quest and OpenXR headsets. **Ecosystem Choices** merges physics-driven VR locomotion and trail constraint systems with dynamic, procedural biodiversity simulations (avian flocking, butterfly flight mechanics, and ground insect trail crossings), empowering participants to explore natural environments and observe ecological dynamics.
+An immersive Virtual Reality (VR) experience designed for **Meta Quest 3**, **Meta Quest 2**, and **OpenXR** headsets. **Ecosystem Choices** merges comfort-driven VR locomotion and path constraint systems with dynamic, procedural biodiversity simulations (avian flocking, butterfly flight mechanics, and ground insect trail crossings), interactive VR menus, dynamic flowing river systems, and multi-surface locomotion audio crossfading.
 
 ---
 
 ## 📌 Project Overview & Scope
 
-The prototype delivers a **comfort-focused, highly responsive VR locomotion framework** combined with an **autonomous wildlife biodiversity simulation engine** and **interactive environmental Point of Interest (POI) observation zones**.
+The prototype delivers a fully realized, comfort-focused VR ecosystem exploration framework:
 
-### Key Features & Capabilities
-
-1. **Comfortable Continuous Locomotion**: Thumbstick-driven translation with customizable radial deadzones, slope speed reduction, and automated terrain ground alignment.
-2. **Path & Trail Constraint System**: Keeps participants naturally guided along designated walking trails using high-performance painted terrain splatmap sampling (`PathMovementConstraint`) with smooth edge repulsion and obstacle avoidance.
-3. **Head-Centered Rotation**: Offers both **Snap Turn** (increments: 15°, 30°, 45°, 60°) and **Smooth Turn** (60°–90°/s) pivoting around the user's physical HMD position to eliminate spatial disorientation.
-4. **Motion Sickness Mitigation**: Dynamic FOV tunneling vignette (`ComfortVignette`) that smoothly activates during acceleration or turning.
-5. **Adaptive Grounding & Surface Collision**: Dual-layer detection (`GroundDetector`) combining `SphereCast` and high-precision fallback `Raycast` to handle rugged terrain without clipping or subterranean camera placement.
-6. **Contextual Audio & Controller Haptics**: Footstep sound playback calibrated to actual horizontal distance traveled (`MovementAudio`), paired with subtle controller vibration (`LocomotionHaptics`).
-7. **Procedural Wildlife & Biodiversity Simulation**:
-   - **Avian Flocking (`BirdFlockSpawner` / `BirdFlockController`)**: Autonomous boids flocking simulation with cohesion, separation, velocity matching, banking, terrain obstacle clearance, and roosting cycles.
-   - **Butterfly Dynamics (`ButterflySpawner` / `ProceduralButterflyController`)**: Organic flight paths featuring 3D Perlin turbulence, shrub/flower resting intervals, and dynamic wing fluttering.
-   - **Insect & Millipede Crawlers (`InsectLineSpawner` / `InsectLineController`)**: Natural ground crossings with macro longitudinal spine contouring, terrain normal alignment, 3-whisker obstacle avoidance around trees/rocks, and a natural foliage-burrowing lifecycle.
-8. **Parabolic Teleportation**: Integrated parabolic arc teleport controller with real-time slope and trail-boundary validation.
+- **Interactive VR Startup Void & In-Game UI**: Seamless UI card presentation in a pure black void on startup, smooth cinematic fade-in with zero camera drop, and in-game pause dialog.
+- **Physics-Informed VR Locomotion**: Continuous joystick translation, radial deadzones, slope speed adaptation, and HMD-centered snap/smooth turning.
+- **Intelligent Trail & Path Constraints**: High-performance painted terrain splatmap sampling (`PathMovementConstraint`) preventing off-trail wandering while allowing natural side bleed and smooth edge sliding.
+- **Flowing River & Dynamic 3D Spatial Audio**: Canal trench cutting through the low-poly terrain with animated flowing water and a dynamic 3D audio emitter that tracks the closest point on the canal to the player.
+- **Wooden Bridge & Multi-Surface Footstep Crossfading**: Equal-power crossfading ($\cos^2 + \sin^2 = 1$) between gravel/dirt trail footsteps and wooden bridge plank footsteps, with zero volume drop or audio pops.
+- **Autonomous Biodiversity Engine**:
+  - **Avian Flocking**: 3D boids simulation with banking, obstacle evasion, and roosting cycles.
+  - **Procedural Butterflies**: 3D Perlin flight turbulence, double-sided wing fluttering, and flower-resting states.
+  - **Ground Crawlers / Millipedes**: Ground spine contouring, 3-whisker obstacle avoidance, and burrowing lifecycle.
+  - **Tree Canopy Birds**: Randomized 3D spatial bird calls originating from surrounding foliage.
 
 ---
 
 ## 🛠️ System Architecture
 
-The project is structured into modular, decoupled subsystems:
-
 ```
-[ XR Player Rig ]
-  ├── LocomotionManager (Central Coordinator & Origin Setup)
+[ XR Player Rig (OVRCameraRig) ]
+  ├── LocomotionManager (Central Coordinator, XR Floor Origin & Terrain/Bridge Sync)
   ├── CharacterController (Physics & Capsule Bounds)
-  ├── ContinuousLocomotion (Joystick Translation & Movement Physics)
-  ├── PathMovementConstraint (Terrain Splatmap & Physics Trail Boundary Enforcement)
+  ├── ContinuousLocomotion (Smooth Translation, Acceleration & Movement Physics)
+  ├── PathMovementConstraint (Terrain Splatmap & Wooden Bridge Boundary Enforcement)
   ├── RotationController (HMD-Centered Snap / Smooth Turning)
   ├── GroundDetector (SphereCast / Raycast Ground Probing)
-  ├── LocomotionStateMachine (Locomotion State Machine & Event Dispatcher)
-  ├── LocomotionModifier (POI Speed Multipliers)
+  ├── LocomotionStateMachine (State Management: Grounded, Walking, Airborne, etc.)
   ├── ComfortVignette (Dynamic Peripheral Tunneling)
-  ├── MovementAudio (Distance-Based Footstep System)
-  ├── LocomotionHaptics (Controller Vibration Telemetry)
+  ├── MovementAudio (Multi-Surface Footstep Audio & Equal-Power Crossfader)
   ├── TeleportController (Parabolic Arc & Target Marker)
-  └── LocomotionDebugOverlay (Real-Time Telemetry HUD)
+  └── LocomotionDebugOverlay (Real-Time Telemetry HUD & Surface Blend Meter)
 
-[ Biodiversity & Wildlife Engine ]
-  ├── BiodiversityManager (Orchestrator for Wildlife Density & Proximity Spawning)
+[ VR UI & Interaction ]
+  ├── VRMenuManager (Void Culling, Home/About/Quit Cards & Cinematic Fade-In)
+  ├── VRRaycaster (3D Controller Laser Pointer & UI Event System)
+  └── VRMenuButtonEffect (Smooth Button Hover/Depression, Audio & Haptics)
+
+[ Environmental Systems ]
+  ├── River_Water (Flowing River Mesh & URP Material)
+  ├── RiverSoundController (Centerline Spline Tracking & 3D Spatial Audio Attenuation)
+  ├── PT_Wooden_Bridge_02 (Wooden Canal Bridge with Mesh Colliders)
+  └── WoodenBridgeSurface (Surface Registration, Bounding Bounds & Path Layer Assignment)
+
+[ Biodiversity Simulation ]
   ├── BirdFlockSpawner & BirdFlockController (Autonomous 3D Boids Flocking)
   ├── ButterflySpawner & ProceduralButterflyController (Perlin Turbulence & Landing States)
-  └── InsectLineSpawner & InsectLineController (Ground Spine Contouring & Concealment)
+  └── InsectLineSpawner & InsectLineController (Ground Spine Contouring & Burrowing Lifecycle)
 ```
 
 ---
 
-## 📂 Core Script Modules
+## 🎮 Core Subsystems & Features
 
-### Locomotion & Navigation
-| Script | Description |
-|---|---|
-| [`LocomotionManager.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Locomotion/Core/LocomotionManager.cs) | Central hub connecting player sub-components and managing floor-level XR tracking origin setup. |
-| [`ContinuousLocomotion.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Locomotion/Movement/ContinuousLocomotion.cs) | Handles continuous translation via `CharacterController.Move()`, radial deadzones, smooth acceleration, slope scaling, and trail constraints. |
-| [`PathMovementConstraint.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Locomotion/Movement/PathMovementConstraint.cs) | Enforces trail containment via fast 3D alphamap caching or physics colliders with edge repulsion and slide projection. |
-| [`RotationController.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Locomotion/Movement/RotationController.cs) | Controls snap and smooth turning using `transform.RotateAround()` centered on the HMD's physical head position. |
-| [`GroundDetector.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Locomotion/Movement/GroundDetector.cs) | Probes environment below the capsule, determining grounding status, slope angle, surface normals, and ground contact points. |
-| [`LocomotionStateMachine.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Locomotion/Core/LocomotionStateMachine.cs) | Evaluates and broadcasts locomotion states (`Grounded`, `Walking`, `SteepSlope`, `Airborne`, `Teleporting`). |
-| [`ComfortVignette.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Locomotion/Comfort/ComfortVignette.cs) | Procedural peripheral vision vignette fading in during high acceleration and velocity. |
-| [`MovementAudio.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Locomotion/AudioAndHaptics/MovementAudio.cs) | Distance-traveled footstep system adjusting footstep cadence naturally based on physical speed. |
-| [`POIZone.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Locomotion/Interaction/POIZone.cs) | Trigger zone that smoothly scales player speed when entering key observation locations. |
-| [`TeleportController.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Locomotion/Teleport/TeleportController.cs) | Parabolic arc teleportation controller supporting slope validation and trail boundary checks. |
+### 1. VR UI Menu System & Startup Void
+- **Total Pitch-Black Startup Void**: At launch, the camera's culling mask hides the 3D world entirely (`ApplyVoidCulling`), presenting only the high-resolution UI cards directly in front of the player's headset against deep black space.
+- **Interactive UI Cards**:
+  - **Home Card**: Experience branding with **Start**, **About**, and **Quit** buttons.
+  - **About Card**: Narrative and ecological context with a **Back** button.
+  - **Quit Card**: Confirmation modal with **Yes** (exit) and **No** (resume/return) buttons.
+- **3D Laser Pointer & Haptics**: Right VR controller projects a responsive 3D raycast laser with glowing reticle, haptic feedback pulses on hover/click, and crisp audio cues.
+- **Smooth Cinematic Fade-In**: Clicking **Start** initiates a smooth 1.8-second black fade-in during which the world ambient soundscape and flowing river audio gently swell into the user's ears.
+- **Zero Player Drop**: The player is pre-spawned firmly on the walking trail $(13.6, 4.74, 36.84)$, preventing any disorienting downward falling.
+- **Mid-Experience Pause Menu**: Pressing the VR Menu button (or `B` / `Y` / `Esc`) opens the Quit/Resume dialog mid-experience.
 
-### Biodiversity & Wildlife
-| Script | Description |
-|---|---|
-| [`BiodiversityManager.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Biodiversity/BiodiversityManager.cs) | Master coordinator managing concurrent active wildlife agents, participant observation ranges, and spawn budgets. |
-| [`BirdFlockSpawner.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Biodiversity/BirdFlockSpawner.cs) | Configures flock sizes, flight boundaries, speed envelopes, and waypoint generation. |
-| [`BirdFlockController.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Biodiversity/BirdFlockController.cs) | Executes 3D boids flocking rules, aerodynamic banking, obstacle evasion, and altitude maintenance. |
-| [`ButterflySpawner.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Biodiversity/ButterflySpawner.cs) | Spawns individual and grouped butterflies near trail flora, shrubs, and meadow waypoints. |
-| [`ProceduralButterflyController.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Biodiversity/ProceduralButterflyController.cs) | Simulates organic flutter dynamics, 3D Perlin noise turbulence, landing states, and wing oscillation. |
-| [`InsectLineSpawner.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Biodiversity/InsectLineSpawner.cs) | Distance- and timer-triggered trail crossing events for ground crawlers, spawning from edge foliage. |
-| [`InsectLineController.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Biodiversity/InsectLineController.cs) | Physics-informed crawler movement with macro spine contouring, 3-whisker obstacle avoidance, and burrowing lifecycle. |
-| [`ProceduralInsectAnimator.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Scripts/Biodiversity/ProceduralInsectAnimator.cs) | Procedural sinusoidal body wave and leg oscillation fallback for unrigged crawler models. |
-| [`MillipedeSetupTool.cs`](file:///d:/lawal/Documents/Unity%20progress/XRCC/Ecosystem_Choices/Assets/Editor/MillipedeSetupTool.cs) | Editor automation utility for configuring insect prefabs, mesh orientation offsets, and collider setups. |
+### 2. Multi-Surface Locomotion Audio & Equal-Power Crossfade
+- **Dual-Surface Acoustic Tracks**:
+  - *Track A (Terrain Trail)*: Continuous walking audio on dirt/gravel (`Footsteps_Gravel_Grass_Continuous.mp3`).
+  - *Track B (Wooden Bridge)*: Continuous walking audio on resonant wooden planks (`footsteps-on-wood-397989.mp3`).
+- **Equal-Power Crossfade**:
+  $$\text{terrainWeight} = \cos\left(\text{blend} \cdot \frac{\pi}{2}\right), \quad \text{woodWeight} = \sin\left(\text{blend} \cdot \frac{\pi}{2}\right)$$
+  Maintains constant acoustic energy ($\cos^2 + \sin^2 = 1$) throughout the transition, eliminating volume dips.
+- **Multi-Method Bridge Detection (`WoodenBridgeSurface.cs`)**:
+  - Downward ground hit inspection (`GroundDetector.SurfaceHit`).
+  - Spatial 3D bounding volume with $0.8\,\text{m}$ lead-in padding for smooth ramp entry.
+  - Localized feet overlap sphere checking.
+- **Speed & Cadence Scaling**: Footstep playback pitch ($0.88\times$ to $1.22\times$) scales dynamically with player speed, fading to instant silence when stationary.
+
+### 3. Flowing River & Spatial 3D Audio
+- **Canal Trench**: Dug river ridge traversing across the terrain along $Z = 51.1\,\text{m}$.
+- **Optimized Dynamic Spatial Audio (`RiverSoundController.cs`)**:
+  - Avoids spawning multiple expensive 3D audio sources.
+  - Projects a single 3D audio emitter along the canal centerline to the point nearest to the player's head in real-time.
+  - Features realistic logarithmic distance roll-off ($3\,\text{m}$ to $25\,\text{m}$) and distance-based volume culling ($>35\,\text{m}$).
+
+### 4. Trail & Path Movement Constraints
+- **Painted Terrain Alphamap Sampling (`PathMovementConstraint.cs`)**:
+  - Pre-loads splatmap arrays into memory for 0-GC per-frame evaluation.
+  - Constrains the player to the designated trail with configurable bleed distance ($1.2\,\text{m}$) and smooth edge repulsion.
+- **Bridge Walkway Pass-Through**: Automatically recognizes `WoodenBridgeSurface` as a valid path, ensuring uninterrupted crossing over the river canal.
 
 ---
 
-## 💻 Tech Stack & Requirements
+## 🕹️ Controls & Interaction Guide
 
-- **Unity Editor**: `6000.5.0f1` (or compatible Unity 6 release)
-- **Render Pipeline**: Universal Render Pipeline (URP)
-- **XR Runtime**: OpenXR with Meta XR Core SDK
-- **Input System**: Unity Input System with OVRInput & Keyboard fallbacks
-- **Target Hardware**: Meta Quest 2, Meta Quest 3, Meta Quest Pro, PCVR via Link / AirLink
-
----
-
-## 🚀 Getting Started
-
-### 1. Repository Setup
-```bash
-git clone https://github.com/Tessymed/Ecosystem_Choices.git
-cd Ecosystem_Choices
-```
-
-### 2. Open Project in Unity
-1. Launch **Unity Hub**.
-2. Click **Add** -> **Add project from disk**.
-3. Select the `Ecosystem_Choices` repository root folder.
-4. Ensure Unity version `6000.5.0f1` (or latest Unity 6 version) is selected.
-
-### 3. Controls & Playtesting
-Open `Assets/Scenes/SampleScene.unity` and enter Play Mode:
-
-| Action | VR Controllers (Meta Quest) | Editor Keyboard / Mouse |
+| Action | Meta Quest 3 Controllers | Editor Keyboard / Mouse |
 |---|---|---|
-| **Continuous Move** | Left Thumbstick | **W / A / S / D** or Arrow Keys |
+| **Interact with UI** | Right Trigger (Index) | Left Mouse Click |
+| **Aim UI Laser** | Right Hand Pointer | Mouse Cursor |
+| **Continuous Locomotion** | Left Thumbstick | **W / A / S / D** or Arrow Keys |
 | **Turn Left / Right** | Right Thumbstick (Snap / Smooth) | **Q / E** |
+| **Toggle Pause / Quit Menu** | Left Menu Button / **B** / **Y** Button | **Escape** key |
 | **Parabolic Teleport** | Right Thumbstick Press / Forward | Hold **T** |
-| **Speed POI Interaction** | Proximity to flora/specimens | Automatic speed dampening |
 
 ---
 
-## 📝 Development Roadmap
+## 📦 Meta Quest 3 Build & Deployment Guide
 
-- [x] Physics-based continuous locomotion with smooth acceleration and radial deadzones.
-- [x] HMD-centered snap and smooth turning.
-- [x] Dual-stage `SphereCast` / `Raycast` ground detection.
-- [x] Automated terrain elevation placement and height snapping.
-- [x] Distance-calibrated footstep audio cadence and controller haptics.
-- [x] Point of Interest (POI) observation zones and velocity damping.
-- [x] Dynamic comfort vignette overlay.
-- [x] Terrain-painted splatmap path constraint with smooth edge repulsion.
-- [x] Avian 3D boids flocking system with obstacle clearance and 3D spatial flight audio.
-- [x] Procedural butterfly flight simulation with horizontal flight orientation, organic wing fluttering, weighted cluster spawning, and plant-to-plant flora meandering.
-- [x] Double-sided URP alpha-clip wing materials and multi-hue butterfly color variations.
-- [x] Terrain-contouring ground crawler simulation with calm millipede pacing (~0.14 m/s), synchronized leg gait ripple, inspector speed sliders, obstacle feelers, and burrowing lifecycle.
-- [x] Immersive ecosystem audio architecture:
-  - Velocity-scaled continuous footsteps on forest gravel/grass with acceleration pitch modulation and zero sound on stop.
-  - Dynamic organic ambience with multi-frequency breathing LFO flows, wavelength breeze swells, and movement reactivity.
-  - 3D spatial tree canopy bird calls and sky flock flyby binaural soundscape.
-- [x] Quest Link OpenXR stability optimization (elimination of mobile AR conflicts).
-- [ ] Interactive ecological choice cards and specimen data UI.
-- [ ] Multi-zone biome transitions (Wetlands, Forest Canopy, Grasslands).
-- [ ] Dynamic weather & diurnal day/night cycles.
+Follow these steps to produce an optimized standalone APK for **Meta Quest 3**:
+
+### Step 1: Switch Platform to Android
+1. In Unity Editor, go to **File** > **Build Profiles** (or **Build Settings**).
+2. Under **Platform**, select **Android**.
+3. Set **Texture Compression** to **ASTC**.
+4. Click **Switch Platform** and allow Unity to re-import assets for Android.
+
+### Step 2: Verify XR Plug-in Management
+1. Open **Edit** > **Project Settings** > **XR Plug-in Management**.
+2. Switch to the **Android** tab (robot icon).
+3. Ensure **OpenXR** is checked.
+4. Under the **OpenXR** sub-tree:
+   - Ensure the **Meta Quest Support** feature group is enabled.
+   - In **Interaction Profiles**, ensure **Oculus Touch Controller Profile** and **Meta Quest Touch Plus Controller Profile** are added.
+5. In **Project Settings** > **Player** > **Android tab**:
+   - **Color Space**: Linear.
+   - **Graphics API**: Vulkan (or OpenGLES3 fallback).
+   - **Minimum API Level**: Android 10.0 (API Level 29) or Android 12.0 (API Level 32).
+   - **Target API Level**: Automatic (highest installed) or API Level 34.
+   - **Scripting Backend**: IL2CPP.
+   - **Target Architectures**: ARM64 checked (ARMv7 unchecked).
+
+### Step 3: Build Standalone APK
+1. In **File** > **Build Settings**, verify `Assets/Scenes/SampleScene.unity` is checked in **Scenes In Build**.
+2. Click **Build** (or **Build and Run** if your Quest 3 is connected via USB-C with Developer Mode enabled).
+3. Choose a destination folder and filename, e.g. `Builds/Ecosystem_Choices_Quest3.apk`.
+
+### Step 4: Install to Meta Quest 3
+- **Option A (Meta Quest Developer Hub / MQDH)**: Drag and drop the built `.apk` directly into MQDH under **Device Manager** > **Apps**.
+- **Option B (SideQuest)**: Connect Quest 3 via USB-C, click the **Install APK** button in the top menu bar, and select the `.apk`.
+- **Option C (Command Line / ADB)**:
+  ```bash
+  adb install -r Builds/Ecosystem_Choices_Quest3.apk
+  ```
+- **Launching on Quest 3**: Put on the headset, navigate to **App Library**, change the filter in the top right to **Unknown Sources**, and select **Ecosystem Choices**.
+
+---
+
+## 📂 Core Scripts Directory
+
+| File | Purpose |
+|---|---|
+| [`VRMenuManager.cs`](Assets/Scripts/UI/VRMenuManager.cs) | Controls startup void culling, menu page switching, cinematic fade-in, and pause menu. |
+| [`VRRaycaster.cs`](Assets/Scripts/UI/VRRaycaster.cs) | 3D VR laser pointer with curved reticle and UI canvas raycasting. |
+| [`VRMenuButtonEffect.cs`](Assets/Scripts/UI/VRMenuButtonEffect.cs) | Haptic pulses and visual depression animations on button hover/click. |
+| [`MovementAudio.cs`](Assets/Scripts/Locomotion/AudioAndHaptics/MovementAudio.cs) | Distance-based footstep playback, dynamic pitch scaling, and equal-power multi-surface crossfade. |
+| [`WoodenBridgeSurface.cs`](Assets/Scripts/Environment/WoodenBridgeSurface.cs) | Identifies wooden bridge structures, spatial bounds, and assigns path layers. |
+| [`RiverSoundController.cs`](Assets/Scripts/Environment/RiverSoundController.cs) | 3D spatial river audio tracking the nearest point along the canal centerline. |
+| [`PathMovementConstraint.cs`](Assets/Scripts/Locomotion/Movement/PathMovementConstraint.cs) | Splatmap terrain trail restriction with slide projection and bridge support. |
+| [`ContinuousLocomotion.cs`](Assets/Scripts/Locomotion/Movement/ContinuousLocomotion.cs) | Physics-driven translation, acceleration, deceleration, and slope scaling. |
+| [`GroundDetector.cs`](Assets/Scripts/Locomotion/Movement/GroundDetector.cs) | Dual SphereCast/Raycast ground probing for accurate terrain alignment. |
+| [`RotationController.cs`](Assets/Scripts/Locomotion/Movement/RotationController.cs) | HMD-centered snap and smooth turning. |
+| [`ComfortVignette.cs`](Assets/Scripts/Locomotion/Comfort/ComfortVignette.cs) | Dynamic FOV tunneling during rapid acceleration and turning. |
+| [`LocomotionDebugOverlay.cs`](Assets/Scripts/Locomotion/Debug/LocomotionDebugOverlay.cs) | On-screen HUD showing locomotion telemetry and real-time surface blend percentage. |
+| [`BirdFlockSpawner.cs`](Assets/Scripts/Biodiversity/BirdFlockSpawner.cs) | Avian 3D boids flocking spawner and altitude controller. |
+| [`ButterflySpawner.cs`](Assets/Scripts/Biodiversity/ButterflySpawner.cs) | Procedural butterfly spawner with organic flight turbulence. |
+| [`InsectLineSpawner.cs`](Assets/Scripts/Biodiversity/InsectLineSpawner.cs) | Ground insect crossing spawner with spine contouring. |
 
 ---
 
 ## 📄 License
 
-This project is created for educational research, immersive XR locomotion experimentation, and ecological simulation prototyping.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

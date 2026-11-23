@@ -5,12 +5,14 @@ namespace EcosystemChoices.Locomotion
     /// <summary>
     /// Master audio director for locomotion and ambient ecosystem soundscapes.
     /// Features:
-    /// 1. Dynamic continuous & discrete footstep audio with acceleration/speed pitch scaling,
+    /// 1. Dynamic continuous & discrete footstep audio with velocity/acceleration pitch scaling,
     ///    instant movement gating, and complete silence when stationary.
-    /// 2. Immersive ambient soundscape with organic multi-frequency breathing waves (flows & wavelengths),
+    /// 2. Multi-surface acoustic detection with silky-smooth equal-power crossfading between
+    ///    terrain path footsteps and wooden bridge plank footsteps.
+    /// 3. Immersive ambient soundscape with organic multi-frequency breathing waves (flows & wavelengths),
     ///    locomotion-reactive atmospheric swell, and subtle pitch drift.
-    /// 3. 3D spatial canopy bird soundscape with calls emerging from tree branches surrounding the player in VR.
-    /// 4. Automatic AudioListener safety verification so sound never fails to play.
+    /// 4. 3D spatial canopy bird soundscape with calls emerging from tree branches surrounding the player in VR.
+    /// 5. Automatic AudioListener safety verification so sound never fails to play.
     /// </summary>
     [AddComponentMenu("Locomotion/Movement Audio")]
     [RequireComponent(typeof(AudioSource))]
@@ -23,8 +25,8 @@ namespace EcosystemChoices.Locomotion
             AutoDetect
         }
 
-        [Header("Footstep Audio Settings")]
-        [Tooltip("Continuous walking audio track (e.g. forest road gravel/grass). Plays dynamically while moving, silent on halt.")]
+        [Header("Terrain Path Footsteps")]
+        [Tooltip("Continuous walking audio track on terrain / gravel (e.g. Footsteps_Gravel_Grass_Continuous).")]
         [SerializeField] private AudioClip continuousFootstepClip;
 
         [Tooltip("Array of discrete footstep clips (used when no continuous clip is provided or in discrete mode).")]
@@ -33,7 +35,7 @@ namespace EcosystemChoices.Locomotion
         [Tooltip("Footstep playback mode.")]
         [SerializeField] private FootstepPlaybackMode playbackMode = FootstepPlaybackMode.AutoDetect;
 
-        [Tooltip("Master volume multiplier for footstep audio.")]
+        [Tooltip("Master volume multiplier for terrain footstep audio.")]
         [Range(0f, 1f)]
         [SerializeField] private float footstepVolume = 0.55f;
 
@@ -54,6 +56,20 @@ namespace EcosystemChoices.Locomotion
 
         [Tooltip("Distance in meters between discrete one-shot footsteps (used when discrete mode is active).")]
         [SerializeField] private float stepDistance = 1.4f;
+
+        [Header("Wooden Bridge Footsteps")]
+        [Tooltip("Continuous walking audio track on wooden bridge (e.g. footsteps-on-wood-397989).")]
+        [SerializeField] private AudioClip woodFootstepClip;
+
+        [Tooltip("Array of discrete wood footstep clips (optional fallback for discrete mode).")]
+        [SerializeField] private AudioClip[] woodFootstepClips;
+
+        [Tooltip("Relative volume multiplier for wooden bridge footsteps.")]
+        [Range(0f, 1f)]
+        [SerializeField] private float woodFootstepVolume = 0.50f;
+
+        [Tooltip("Speed of crossfading between terrain path footsteps and wooden bridge footsteps in units/sec (3.0 = ~0.33s smooth transition).")]
+        [SerializeField] private float surfaceCrossfadeSpeed = 3.0f;
 
         [Header("Ecosystem Ambient Soundscape (Flows & Wavelengths)")]
         [Tooltip("AudioSource for ambient ecosystem background audio. Auto-created if null.")]
@@ -121,15 +137,20 @@ namespace EcosystemChoices.Locomotion
         // Internal audio sources & state
         private AudioSource discreteFootstepSource;
         private AudioSource continuousFootstepSource;
+        private AudioSource woodFootstepSource;
         private AudioSource canopyBirdSource;
+        private CharacterController characterController;
 
         private Vector3 lastPosition;
         private float distanceTraveled;
         private float currentContinuousVol = 0f;
+        private float currentSurfaceBlend = 0f; // 0.0 = 100% terrain path, 1.0 = 100% wooden bridge
         private float currentAmbientVolume;
         private float canopyBirdTimer;
         private float canopyPhraseStopTimer;
         private bool isCanopyPlaying;
+
+        private static readonly Collider[] overlapBuffer = new Collider[8];
 
         public AudioClip AmbientSoundscape
         {
@@ -158,17 +179,34 @@ namespace EcosystemChoices.Locomotion
             }
         }
 
+        public AudioClip WoodFootstepClip
+        {
+            get => woodFootstepClip;
+            set
+            {
+                woodFootstepClip = value;
+                if (woodFootstepSource != null && woodFootstepClip != null)
+                {
+                    woodFootstepSource.clip = woodFootstepClip;
+                }
+            }
+        }
+
         public AudioClip CanopyBirdClip
         {
             get => canopyBirdClip;
             set => canopyBirdClip = value;
         }
 
+        public float CurrentSurfaceBlend => currentSurfaceBlend;
+        public bool IsOnWoodBridge => currentSurfaceBlend > 0.5f;
+
         private void Awake()
         {
             discreteFootstepSource = GetComponent<AudioSource>();
             if (continuousLocomotion == null) continuousLocomotion = GetComponentInParent<ContinuousLocomotion>();
             if (groundDetector == null) groundDetector = GetComponentInParent<GroundDetector>();
+            if (characterController == null) characterController = GetComponentInParent<CharacterController>();
 
             lastPosition = transform.position;
 
@@ -178,6 +216,7 @@ namespace EcosystemChoices.Locomotion
             }
 
             InitializeContinuousFootstepAudio();
+            InitializeWoodFootstepAudio();
             InitializeAmbientAudio();
             InitializeCanopyBirdAudio();
         }
@@ -187,7 +226,6 @@ namespace EcosystemChoices.Locomotion
             AudioListener existing = FindAnyObjectByType<AudioListener>();
             if (existing == null)
             {
-                // Attempt to find center camera or main camera
                 Camera cam = GetComponentInChildren<Camera>();
                 if (cam == null) cam = Camera.main;
 
@@ -198,7 +236,6 @@ namespace EcosystemChoices.Locomotion
                 }
                 else
                 {
-                    // Fallback to this transform
                     gameObject.AddComponent<AudioListener>();
                     Debug.Log("[MovementAudio] Added fallback AudioListener to locomotion rig.");
                 }
@@ -221,6 +258,32 @@ namespace EcosystemChoices.Locomotion
             if (continuousFootstepClip != null)
             {
                 continuousFootstepSource.clip = continuousFootstepClip;
+            }
+        }
+
+        private void InitializeWoodFootstepAudio()
+        {
+            if (woodFootstepSource == null)
+            {
+                GameObject woodGO = new GameObject("WoodFootstepAudio");
+                woodGO.transform.SetParent(transform, false);
+                woodFootstepSource = woodGO.AddComponent<AudioSource>();
+                woodFootstepSource.playOnAwake = false;
+                woodFootstepSource.loop = true;
+                woodFootstepSource.spatialBlend = 0.2f; // Subtle stereo width beneath body
+                woodFootstepSource.volume = 0f;
+            }
+
+#if UNITY_EDITOR
+            if (woodFootstepClip == null)
+            {
+                woodFootstepClip = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/Locomotion/footsteps-on-wood-397989.mp3");
+            }
+#endif
+
+            if (woodFootstepClip != null)
+            {
+                woodFootstepSource.clip = woodFootstepClip;
             }
         }
 
@@ -276,7 +339,7 @@ namespace EcosystemChoices.Locomotion
             bool isGrounded = groundDetector != null ? groundDetector.IsGrounded : true;
             bool isMoving = isGrounded && (currentSpeed > minMoveSpeed);
 
-            // 1. Process Footstep Audio
+            // 1. Process Multi-Surface Footstep Audio with Smooth Crossfading
             UpdateFootstepAudio(isMoving, currentSpeed, distanceThisFrame, isGrounded);
 
             // 2. Process Organic Ambient Flows & Wavelengths
@@ -291,35 +354,85 @@ namespace EcosystemChoices.Locomotion
             bool useContinuous = false;
             if (playbackMode == FootstepPlaybackMode.ContinuousTrack) useContinuous = true;
             else if (playbackMode == FootstepPlaybackMode.DiscreteStepClips) useContinuous = false;
-            else useContinuous = (continuousFootstepClip != null);
+            else useContinuous = (continuousFootstepClip != null || woodFootstepClip != null);
 
-            if (useContinuous && continuousFootstepSource != null && continuousFootstepClip != null)
+            // 1. Detect if player is on wooden bridge surface
+            bool onWoodBridge = DetectWoodBridgeSurface();
+            float targetSurfaceBlend = onWoodBridge ? 1.0f : 0.0f;
+
+            // 2. Smoothly crossfade surface blend factor
+            currentSurfaceBlend = Mathf.MoveTowards(
+                currentSurfaceBlend,
+                targetSurfaceBlend,
+                Time.deltaTime * surfaceCrossfadeSpeed
+            );
+
+            // 3. Equal-Power crossfade weights (guarantees constant acoustic power, no mid-transition volume dip)
+            float blendRad = currentSurfaceBlend * (Mathf.PI * 0.5f);
+            float terrainWeight = Mathf.Cos(blendRad);
+            float woodWeight = Mathf.Sin(blendRad);
+
+            if (useContinuous)
             {
                 if (isMoving)
                 {
-                    if (!continuousFootstepSource.isPlaying)
+                    // Start playback on sources if within audible crossfade window
+                    if (continuousFootstepSource != null && continuousFootstepClip != null)
                     {
-                        continuousFootstepSource.Play();
+                        if (!continuousFootstepSource.isPlaying && terrainWeight > 0.001f)
+                        {
+                            continuousFootstepSource.Play();
+                        }
+                    }
+
+                    if (woodFootstepSource != null && woodFootstepClip != null)
+                    {
+                        if (!woodFootstepSource.isPlaying && woodWeight > 0.001f)
+                        {
+                            woodFootstepSource.Play();
+                        }
                     }
 
                     // Dynamic pitch & volume scaling based on velocity/acceleration
                     float speedFactor = Mathf.Clamp01((currentSpeed - minMoveSpeed) / Mathf.Max(0.1f, referenceWalkSpeed - minMoveSpeed));
-                    float targetVol = footstepVolume * Mathf.Lerp(0.6f, 1.0f, speedFactor);
+                    float targetMovementVol = Mathf.Lerp(0.6f, 1.0f, speedFactor);
                     float targetPitch = Mathf.Lerp(pitchRange.x, pitchRange.y, speedFactor);
 
-                    currentContinuousVol = Mathf.MoveTowards(currentContinuousVol, targetVol, Time.deltaTime * footstepFadeInSpeed);
-                    continuousFootstepSource.volume = currentContinuousVol;
-                    continuousFootstepSource.pitch = Mathf.Lerp(continuousFootstepSource.pitch, targetPitch, Time.deltaTime * 6.0f);
+                    currentContinuousVol = Mathf.MoveTowards(currentContinuousVol, targetMovementVol, Time.deltaTime * footstepFadeInSpeed);
+
+                    if (continuousFootstepSource != null)
+                    {
+                        continuousFootstepSource.volume = currentContinuousVol * footstepVolume * terrainWeight;
+                        continuousFootstepSource.pitch = Mathf.Lerp(continuousFootstepSource.pitch, targetPitch, Time.deltaTime * 6.0f);
+                    }
+
+                    if (woodFootstepSource != null)
+                    {
+                        woodFootstepSource.volume = currentContinuousVol * woodFootstepVolume * woodWeight;
+                        woodFootstepSource.pitch = Mathf.Lerp(woodFootstepSource.pitch, targetPitch, Time.deltaTime * 6.0f);
+                    }
                 }
                 else
                 {
                     // Instant smooth fade-out to complete silence when stopped
                     currentContinuousVol = Mathf.MoveTowards(currentContinuousVol, 0f, Time.deltaTime * footstepFadeOutSpeed);
-                    continuousFootstepSource.volume = currentContinuousVol;
 
-                    if (currentContinuousVol <= 0.001f && continuousFootstepSource.isPlaying)
+                    if (continuousFootstepSource != null)
                     {
-                        continuousFootstepSource.Pause();
+                        continuousFootstepSource.volume = currentContinuousVol * footstepVolume * terrainWeight;
+                        if (currentContinuousVol <= 0.001f && continuousFootstepSource.isPlaying)
+                        {
+                            continuousFootstepSource.Pause();
+                        }
+                    }
+
+                    if (woodFootstepSource != null)
+                    {
+                        woodFootstepSource.volume = currentContinuousVol * woodFootstepVolume * woodWeight;
+                        if (currentContinuousVol <= 0.001f && woodFootstepSource.isPlaying)
+                        {
+                            woodFootstepSource.Pause();
+                        }
                     }
                 }
             }
@@ -331,7 +444,7 @@ namespace EcosystemChoices.Locomotion
                     distanceTraveled += distanceThisFrame;
                     if (distanceTraveled >= stepDistance)
                     {
-                        PlayDiscreteFootstepSound();
+                        PlayDiscreteFootstepSound(terrainWeight, woodWeight);
                         distanceTraveled = 0f;
                     }
                 }
@@ -340,6 +453,57 @@ namespace EcosystemChoices.Locomotion
                     distanceTraveled = 0f;
                 }
             }
+        }
+
+        public bool DetectWoodBridgeSurface()
+        {
+            // A. Direct Raycast / Spherecast hit from GroundDetector beneath feet
+            if (groundDetector != null && groundDetector.IsGrounded)
+            {
+                RaycastHit hit = groundDetector.SurfaceHit;
+                if (hit.collider != null && IsBridgeCollider(hit.collider))
+                {
+                    return true;
+                }
+            }
+
+            // B. Spatial bounds query against all active WoodenBridgeSurfaces in the scene
+            Vector3 feetPos = transform.position;
+            if (EcosystemChoices.Environment.WoodenBridgeSurface.IsPointOnAnyBridge(feetPos))
+            {
+                return true;
+            }
+
+            // C. Localized feet overlap sphere check
+            int count = Physics.OverlapSphereNonAlloc(feetPos + Vector3.up * 0.25f, 0.45f, overlapBuffer, ~0, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++)
+            {
+                Collider c = overlapBuffer[i];
+                if (c == null) continue;
+                if (characterController != null && c == characterController) continue;
+
+                if (IsBridgeCollider(c))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsBridgeCollider(Collider col)
+        {
+            if (col == null) return false;
+            if (col.GetComponentInParent<EcosystemChoices.Environment.WoodenBridgeSurface>() != null) return true;
+
+            string colName = col.gameObject.name;
+            if (colName.IndexOf("bridge", System.StringComparison.OrdinalIgnoreCase) >= 0) return true;
+            if (colName.IndexOf("wood", System.StringComparison.OrdinalIgnoreCase) >= 0) return true;
+
+            Transform root = col.transform.root;
+            if (root != null && root.name.IndexOf("bridge", System.StringComparison.OrdinalIgnoreCase) >= 0) return true;
+
+            return false;
         }
 
         private void UpdateAmbientAudio(bool isMoving)
@@ -422,15 +586,30 @@ namespace EcosystemChoices.Locomotion
             canopyPhraseStopTimer = Random.Range(2.8f, 5.2f);
         }
 
-        private void PlayDiscreteFootstepSound()
+        private void PlayDiscreteFootstepSound(float terrainWeight = 1.0f, float woodWeight = 0.0f)
         {
-            if (footstepClips == null || footstepClips.Length == 0 || discreteFootstepSource == null) return;
+            if (discreteFootstepSource == null) return;
 
-            AudioClip clip = footstepClips[Random.Range(0, footstepClips.Length)];
-            if (clip != null)
+            // Wood footstep
+            if (woodWeight > 0.05f && woodFootstepClips != null && woodFootstepClips.Length > 0)
             {
-                discreteFootstepSource.pitch = Random.Range(pitchRange.x, pitchRange.y);
-                discreteFootstepSource.PlayOneShot(clip, footstepVolume);
+                AudioClip woodClip = woodFootstepClips[Random.Range(0, woodFootstepClips.Length)];
+                if (woodClip != null)
+                {
+                    discreteFootstepSource.pitch = Random.Range(pitchRange.x, pitchRange.y);
+                    discreteFootstepSource.PlayOneShot(woodClip, woodFootstepVolume * woodWeight);
+                }
+            }
+
+            // Terrain footstep
+            if (terrainWeight > 0.05f && footstepClips != null && footstepClips.Length > 0)
+            {
+                AudioClip terrainClip = footstepClips[Random.Range(0, footstepClips.Length)];
+                if (terrainClip != null)
+                {
+                    discreteFootstepSource.pitch = Random.Range(pitchRange.x, pitchRange.y);
+                    discreteFootstepSource.PlayOneShot(terrainClip, footstepVolume * terrainWeight);
+                }
             }
         }
     }

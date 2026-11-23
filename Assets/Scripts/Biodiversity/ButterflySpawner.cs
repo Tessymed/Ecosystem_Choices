@@ -58,19 +58,39 @@ namespace EcosystemChoices.Biodiversity
 
         private void Awake()
         {
-            if (playerTransform == null)
-            {
-                if (Camera.main != null) playerTransform = Camera.main.transform;
-                else
-                {
-                    GameObject player = GameObject.FindWithTag("Player");
-                    if (player != null) playerTransform = player.transform;
-                }
-            }
+            FindPlayerTransform();
 
             if (pathConstraint == null)
             {
                 pathConstraint = FindAnyObjectByType<EcosystemChoices.Locomotion.PathMovementConstraint>();
+            }
+        }
+
+        private void FindPlayerTransform()
+        {
+            if (playerTransform != null) return;
+
+            if (Camera.main != null)
+            {
+                playerTransform = Camera.main.transform;
+            }
+            else
+            {
+                var locomotion = FindAnyObjectByType<Locomotion.LocomotionManager>();
+                if (locomotion != null)
+                {
+                    playerTransform = locomotion.transform;
+                }
+                else
+                {
+                    GameObject centerEye = GameObject.Find("CenterEyeAnchor");
+                    if (centerEye != null) playerTransform = centerEye.transform;
+                    else
+                    {
+                        GameObject player = GameObject.FindWithTag("Player");
+                        if (player != null) playerTransform = player.transform;
+                    }
+                }
             }
         }
 
@@ -81,7 +101,13 @@ namespace EcosystemChoices.Biodiversity
 
         private void Update()
         {
-            if (playerTransform == null || butterflyPrefabs == null || butterflyPrefabs.Length == 0) return;
+            if (playerTransform == null)
+            {
+                FindPlayerTransform();
+                if (playerTransform == null) return;
+            }
+
+            if (butterflyPrefabs == null || butterflyPrefabs.Length == 0) return;
 
             if (Time.time >= nextSpawnTime)
             {

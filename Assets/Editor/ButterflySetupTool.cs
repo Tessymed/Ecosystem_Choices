@@ -140,9 +140,14 @@ namespace EcosystemChoices.Editor
 
                 so.ApplyModifiedProperties();
 
+                string luName = leftUpper != null ? leftUpper.name : "null";
+                string llName = leftLower != null ? leftLower.name : "null";
+                string ruName = rightUpper != null ? rightUpper.name : "null";
+                string rlName = rightLower != null ? rightLower.name : "null";
+
                 PrefabUtility.SaveAsPrefabAsset(prefabRoot, prefabPath);
                 PrefabUtility.UnloadPrefabContents(prefabRoot);
-                Debug.Log($"[ButterflySetupTool] Configured butterfly_free.prefab with wing pairs: LeftUpper={leftUpper?.name}, LeftLower={leftLower?.name}, RightUpper={rightUpper?.name}, RightLower={rightLower?.name}");
+                Debug.Log($"[ButterflySetupTool] Configured butterfly_free.prefab with wing pairs: LeftUpper={luName}, LeftLower={llName}, RightUpper={ruName}, RightLower={rlName}");
             }
 
             // 5. Update ButterflySpawner in active scene if open

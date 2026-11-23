@@ -108,6 +108,8 @@ InitTestScene*.unity*
 
 # IDE / Agent workspace configs
 .gemini/
+.vsconfig
+*.slnx
 
 # Unity ignored tilde folders & scratch scripts
 *~

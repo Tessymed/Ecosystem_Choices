@@ -15,19 +15,35 @@ namespace EcosystemChoices.Locomotion
 
         private void OnTriggerEnter(Collider other)
         {
-            LocomotionModifier modifier = other.GetComponentInParent<LocomotionModifier>();
+            LocomotionModifier modifier = other.GetComponentInParent<LocomotionModifier>() ?? other.GetComponentInChildren<LocomotionModifier>();
             if (modifier != null)
             {
                 modifier.SetTargetModifier(speedMultiplier);
+            }
+            else
+            {
+                ContinuousLocomotion locomotion = other.GetComponentInParent<ContinuousLocomotion>() ?? other.GetComponentInChildren<ContinuousLocomotion>();
+                if (locomotion != null)
+                {
+                    locomotion.ExternalSpeedModifier = speedMultiplier;
+                }
             }
         }
 
         private void OnTriggerExit(Collider other)
         {
-            LocomotionModifier modifier = other.GetComponentInParent<LocomotionModifier>();
+            LocomotionModifier modifier = other.GetComponentInParent<LocomotionModifier>() ?? other.GetComponentInChildren<LocomotionModifier>();
             if (modifier != null)
             {
                 modifier.ResetModifier();
+            }
+            else
+            {
+                ContinuousLocomotion locomotion = other.GetComponentInParent<ContinuousLocomotion>() ?? other.GetComponentInChildren<ContinuousLocomotion>();
+                if (locomotion != null)
+                {
+                    locomotion.ExternalSpeedModifier = 1.0f;
+                }
             }
         }
 

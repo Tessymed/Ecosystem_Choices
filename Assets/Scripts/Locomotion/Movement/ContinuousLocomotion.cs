@@ -95,15 +95,25 @@ namespace EcosystemChoices.Locomotion
         {
             if (hmdTransform == null)
             {
-                GameObject centerEye = GameObject.Find("CenterEyeAnchor");
-                if (centerEye != null) hmdTransform = centerEye.transform;
-                else if (Camera.main != null) hmdTransform = Camera.main.transform;
+                Transform t = transform.Find("TrackingSpace/CenterEyeAnchor");
+                if (t != null) hmdTransform = t;
+                else
+                {
+                    GameObject centerEye = GameObject.Find("CenterEyeAnchor");
+                    if (centerEye != null) hmdTransform = centerEye.transform;
+                    else if (Camera.main != null) hmdTransform = Camera.main.transform;
+                }
             }
 
             if (controllerTransform == null)
             {
-                GameObject leftHand = GameObject.Find("LeftHandAnchor");
-                if (leftHand != null) controllerTransform = leftHand.transform;
+                Transform t = transform.Find("TrackingSpace/LeftHandAnchor");
+                if (t != null) controllerTransform = t;
+                else
+                {
+                    GameObject leftHand = GameObject.Find("LeftHandAnchor");
+                    if (leftHand != null) controllerTransform = leftHand.transform;
+                }
             }
         }
 
@@ -306,6 +316,7 @@ namespace EcosystemChoices.Locomotion
 
         /// <summary>
         /// Snaps player transform vertically to the ground surface directly beneath it.
+        /// Prioritizes terrain heightmap to avoid hitting sky/foliage colliders.
         /// </summary>
         public void SnapToGround()
         {
@@ -313,10 +324,17 @@ namespace EcosystemChoices.Locomotion
             {
                 TeleportTo(surfacePoint);
             }
+            else if (Terrain.activeTerrain != null)
+            {
+                Vector3 pos = transform.position;
+                float terrainY = Terrain.activeTerrain.SampleHeight(pos) + Terrain.activeTerrain.transform.position.y;
+                pos.y = terrainY;
+                TeleportTo(pos);
+            }
             else
             {
-                Vector3 rayStart = transform.position + Vector3.up * 500f;
-                if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 1000f, ~0, QueryTriggerInteraction.Ignore))
+                Vector3 rayStart = transform.position + Vector3.up * 2f;
+                if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 10f, ~0, QueryTriggerInteraction.Ignore))
                 {
                     TeleportTo(hit.point);
                 }

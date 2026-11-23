@@ -57,15 +57,7 @@ namespace EcosystemChoices.Biodiversity
 
         private void Awake()
         {
-            if (playerTransform == null)
-            {
-                if (Camera.main != null) playerTransform = Camera.main.transform;
-                else
-                {
-                    GameObject player = GameObject.FindWithTag("Player");
-                    if (player != null) playerTransform = player.transform;
-                }
-            }
+            FindPlayerTransform();
         }
 
         private void Start()
@@ -77,9 +69,44 @@ namespace EcosystemChoices.Biodiversity
             }
         }
 
+        private void FindPlayerTransform()
+        {
+            if (playerTransform != null) return;
+
+            if (Camera.main != null)
+            {
+                playerTransform = Camera.main.transform;
+            }
+            else
+            {
+                var locomotion = FindAnyObjectByType<Locomotion.LocomotionManager>();
+                if (locomotion != null)
+                {
+                    playerTransform = locomotion.transform;
+                }
+                else
+                {
+                    GameObject centerEye = GameObject.Find("CenterEyeAnchor");
+                    if (centerEye != null) playerTransform = centerEye.transform;
+                    else
+                    {
+                        GameObject player = GameObject.FindWithTag("Player");
+                        if (player != null) playerTransform = player.transform;
+                    }
+                }
+            }
+        }
+
         private void Update()
         {
-            if (playerTransform == null || birdFlockPrefabs == null || birdFlockPrefabs.Length == 0) return;
+            if (playerTransform == null)
+            {
+                FindPlayerTransform();
+                if (playerTransform == null) return;
+                lastPlayerPosition = playerTransform.position;
+            }
+
+            if (birdFlockPrefabs == null || birdFlockPrefabs.Length == 0) return;
 
             // 1. Check timer trigger
             if (useTimerTrigger && Time.time >= nextSpawnTime)

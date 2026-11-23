@@ -42,14 +42,20 @@ namespace EcosystemChoices.Locomotion
 #endif
 
         private bool hasSnapped;
+        private float editorPitch = 0f;
 
         private void Awake()
         {
             if (hmdTransform == null)
             {
-                GameObject centerEye = GameObject.Find("CenterEyeAnchor");
-                if (centerEye != null) hmdTransform = centerEye.transform;
-                else if (Camera.main != null) hmdTransform = Camera.main.transform;
+                Transform t = transform.Find("TrackingSpace/CenterEyeAnchor");
+                if (t != null) hmdTransform = t;
+                else
+                {
+                    GameObject centerEye = GameObject.Find("CenterEyeAnchor");
+                    if (centerEye != null) hmdTransform = centerEye.transform;
+                    else if (Camera.main != null) hmdTransform = Camera.main.transform;
+                }
             }
         }
 
@@ -59,6 +65,11 @@ namespace EcosystemChoices.Locomotion
 
         private void Update()
         {
+            if (Application.isEditor && !UnityEngine.XR.XRSettings.isDeviceActive)
+            {
+                HandleEditorMouseLook();
+            }
+
             if (mode == RotationMode.PhysicalOnly) return;
 
             Vector2 input = ReadTurnInput();
@@ -70,6 +81,55 @@ namespace EcosystemChoices.Locomotion
             else if (mode == RotationMode.Smooth)
             {
                 HandleSmoothTurn(input.x);
+            }
+        }
+
+        private void HandleEditorMouseLook()
+        {
+            bool isRightClick = false;
+#if ENABLE_INPUT_SYSTEM
+            if (Mouse.current != null)
+            {
+                isRightClick = Mouse.current.rightButton.isPressed;
+            }
+#endif
+            if (!isRightClick)
+            {
+                try { isRightClick = Input.GetMouseButton(1); } catch { }
+            }
+
+            if (isRightClick)
+            {
+                float mouseX = 0f;
+                float mouseY = 0f;
+#if ENABLE_INPUT_SYSTEM
+                if (Mouse.current != null)
+                {
+                    mouseX = Mouse.current.delta.x.ReadValue() * 0.15f;
+                    mouseY = Mouse.current.delta.y.ReadValue() * 0.15f;
+                }
+#endif
+                if (mouseX == 0f && mouseY == 0f)
+                {
+                    try
+                    {
+                        mouseX = Input.GetAxis("Mouse X") * 2f;
+                        mouseY = Input.GetAxis("Mouse Y") * 2f;
+                    }
+                    catch { }
+                }
+
+                if (Mathf.Abs(mouseX) > 0.001f)
+                {
+                    RotateAroundHMD(mouseX);
+                }
+
+                if (hmdTransform != null && Mathf.Abs(mouseY) > 0.001f)
+                {
+                    editorPitch = Mathf.Clamp(editorPitch - mouseY, -85f, 85f);
+                    Vector3 currentEuler = hmdTransform.localEulerAngles;
+                    hmdTransform.localEulerAngles = new Vector3(editorPitch, currentEuler.y, currentEuler.z);
+                }
             }
         }
 
@@ -89,8 +149,8 @@ namespace EcosystemChoices.Locomotion
 
             if (input == Vector2.zero && Keyboard.current != null)
             {
-                if (Keyboard.current.qKey.isPressed) input.x = -1.0f;
-                if (Keyboard.current.eKey.isPressed) input.x = 1.0f;
+                if (Keyboard.current.qKey.isPressed || Keyboard.current.leftArrowKey.isPressed) input.x = -1.0f;
+                if (Keyboard.current.eKey.isPressed || Keyboard.current.rightArrowKey.isPressed) input.x = 1.0f;
             }
 #endif
 
@@ -98,8 +158,8 @@ namespace EcosystemChoices.Locomotion
             {
                 try
                 {
-                    if (Input.GetKey(KeyCode.Q)) input.x = -1.0f;
-                    if (Input.GetKey(KeyCode.E)) input.x = 1.0f;
+                    if (Input.GetKey(KeyCode.Q) || Input.GetKey(KeyCode.LeftArrow)) input.x = -1.0f;
+                    if (Input.GetKey(KeyCode.E) || Input.GetKey(KeyCode.RightArrow)) input.x = 1.0f;
                 }
                 catch (System.InvalidOperationException) { }
             }

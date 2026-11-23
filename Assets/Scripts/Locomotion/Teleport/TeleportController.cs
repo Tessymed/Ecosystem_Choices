@@ -58,9 +58,15 @@ namespace EcosystemChoices.Locomotion
 
             if (handTransform == null)
             {
-                GameObject hand = GameObject.Find("RightHandAnchor");
-                if (hand == null) hand = GameObject.Find("LeftHandAnchor");
-                if (hand != null) handTransform = hand.transform;
+                Transform t = transform.Find("TrackingSpace/RightHandAnchor");
+                if (t == null) t = transform.Find("TrackingSpace/LeftHandAnchor");
+                if (t != null) handTransform = t;
+                else
+                {
+                    GameObject hand = GameObject.Find("RightHandAnchor");
+                    if (hand == null) hand = GameObject.Find("LeftHandAnchor");
+                    if (hand != null) handTransform = hand.transform;
+                }
             }
 
             if (lineRenderer == null)
@@ -69,6 +75,18 @@ namespace EcosystemChoices.Locomotion
                 lineRenderer.startWidth = 0.02f;
                 lineRenderer.endWidth = 0.02f;
                 lineRenderer.positionCount = 0;
+            }
+
+            if (lineRenderer.sharedMaterial == null)
+            {
+                Shader unlit = Shader.Find("Universal Render Pipeline/Unlit");
+                if (unlit == null) unlit = Shader.Find("Sprites/Default");
+                if (unlit != null)
+                {
+                    Material lineMat = new Material(unlit);
+                    lineMat.SetColor("_BaseColor", new Color(0.2f, 0.8f, 0.9f, 0.7f));
+                    lineRenderer.material = lineMat;
+                }
             }
 
             if (landingMarker != null)
@@ -131,15 +149,6 @@ namespace EcosystemChoices.Locomotion
                 active = Keyboard.current.tKey.isPressed;
             }
 #endif
-
-            if (!active && Application.isEditor)
-            {
-                try
-                {
-                    active = Input.GetKey(KeyCode.T);
-                }
-                catch (System.InvalidOperationException) { }
-            }
 
             return active;
         }

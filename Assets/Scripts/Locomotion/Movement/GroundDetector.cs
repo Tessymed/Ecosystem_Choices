@@ -79,16 +79,29 @@ namespace EcosystemChoices.Locomotion
 
         /// <summary>
         /// Attempts to find the exact ground surface point beneath a specified position.
+        /// Prioritizes direct terrain heightmap evaluation to avoid hitting sky/foliage geometry.
         /// </summary>
         public bool TryGetGroundSurfacePoint(Vector3 searchOrigin, out Vector3 surfacePoint)
         {
             surfacePoint = searchOrigin;
-            Vector3 rayStart = searchOrigin + Vector3.up * 500f;
-            if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 1000f, groundLayers, QueryTriggerInteraction.Ignore))
+
+            // 1. Direct query of active Terrain heightmap if available
+            Terrain activeTerrain = Terrain.activeTerrain;
+            if (activeTerrain != null)
+            {
+                float terrainY = activeTerrain.SampleHeight(searchOrigin) + activeTerrain.transform.position.y;
+                surfacePoint = new Vector3(searchOrigin.x, terrainY, searchOrigin.z);
+                return true;
+            }
+
+            // 2. Safe localized raycast from 2 meters above (never from the sky)
+            Vector3 rayStart = searchOrigin + Vector3.up * 2.0f;
+            if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 10.0f, groundLayers, QueryTriggerInteraction.Ignore))
             {
                 surfacePoint = hit.point;
                 return true;
             }
+
             return false;
         }
 

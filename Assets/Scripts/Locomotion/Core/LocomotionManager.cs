@@ -33,17 +33,77 @@ namespace EcosystemChoices.Locomotion
             StateMachine = GetComponent<LocomotionStateMachine>();
             PathConstraint = GetComponent<PathMovementConstraint>();
 
-            Vignette = GetComponentInChildren<ComfortVignette>();
-            TeleportController = GetComponentInChildren<TeleportController>();
+            if (GetComponent<LocomotionModifier>() == null)
+            {
+                gameObject.AddComponent<LocomotionModifier>();
+            }
+
+            Vignette = GetComponent<ComfortVignette>() ?? GetComponentInChildren<ComfortVignette>();
+            TeleportController = GetComponent<TeleportController>() ?? GetComponentInChildren<TeleportController>();
+
+            SynchronizeActiveTerrain();
         }
 
         private void Start()
         {
             InitializeXRTrackingAndSplashScreen();
 
+            SynchronizeActiveTerrain();
+
             if (ContinuousLocomotion != null)
             {
                 ContinuousLocomotion.SnapToGround();
+            }
+        }
+
+        /// <summary>
+        /// Ensures that the active Terrain's collider is fully synchronized with its visual TerrainData,
+        /// clears restrictive layer masks, and ensures PathMovementConstraint references the active terrain.
+        /// </summary>
+        public void SynchronizeActiveTerrain()
+        {
+            Terrain activeTerrain = Terrain.activeTerrain;
+            if (activeTerrain != null)
+            {
+                TerrainCollider terrainCollider = activeTerrain.GetComponent<TerrainCollider>();
+                if (terrainCollider != null)
+                {
+                    if (terrainCollider.terrainData != activeTerrain.terrainData)
+                    {
+                        Debug.Log($"[LocomotionManager] Synchronized TerrainCollider terrainData to active Terrain '{activeTerrain.name}'.");
+                        terrainCollider.terrainData = activeTerrain.terrainData;
+                    }
+                    if (terrainCollider.includeLayers != 0)
+                    {
+                        terrainCollider.includeLayers = 0;
+                    }
+                }
+
+                if (PathConstraint != null)
+                {
+                    if (PathConstraint.TargetTerrain == null || PathConstraint.TargetTerrain != activeTerrain)
+                    {
+                        PathConstraint.TargetTerrain = activeTerrain;
+                        PathConstraint.InitializeTerrain();
+                        PathConstraint.CacheTerrainAlphamaps();
+                    }
+                }
+            }
+
+            SynchronizeBridgeSurfaces();
+        }
+
+        private void SynchronizeBridgeSurfaces()
+        {
+            var bridgeGO = GameObject.Find("PT_Wooden_Bridge_02");
+            if (bridgeGO != null)
+            {
+                var surface = bridgeGO.GetComponent<EcosystemChoices.Environment.WoodenBridgeSurface>();
+                if (surface == null)
+                {
+                    surface = bridgeGO.AddComponent<EcosystemChoices.Environment.WoodenBridgeSurface>();
+                }
+                surface.CacheAndInitialize();
             }
         }
 
