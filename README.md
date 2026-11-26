@@ -1,5 +1,8 @@
 # Ecosystem Choices - XR Locomotion, Biodiversity & Ecological Simulation
 
+[![Meta Quest App Lab](https://img.shields.io/badge/Meta%20Quest-Play%20on%20App%20Lab-0082FB?style=for-the-badge&logo=meta&logoColor=white)](https://www.meta.com/experiences/)
+[![Download APK](https://img.shields.io/badge/GitHub-Download%20APK-24292e?style=for-the-badge&logo=github&logoColor=white)](../../releases)
+
 [![Unity 6](https://img.shields.io/badge/Unity-6000.6.10f1-blue.svg)](https://unity.com/)
 [![Render Pipeline](https://img.shields.io/badge/URP-Universal%20Render%20Pipeline-brightgreen.svg)](https://unity.com/srp/Universal-Render-Pipeline)
 [![Target Platform](https://img.shields.io/badge/Target-Meta%20Quest%203%20%7C%20OpenXR-0082FB.svg)](https://www.meta.com/quest/quest-3/)
@@ -115,25 +118,33 @@ The prototype delivers a fully realized, comfort-focused VR ecosystem exploratio
 
 ---
 
-## 📦 Meta Quest 3 Build & Playtester Installation Guide
+## 📦 Meta Quest 3 Playtester Installation Guide
 
-There are two primary ways for external playtesters to install and experience **Ecosystem Choices**:
-
-### Method 1: Meta App Lab Shareable Link (Recommended - Zero Cable / Zero Dev Mode)
-If you have uploaded the build to Meta App Lab (Alpha, Beta, or App Lab Store):
-1. **No Developer Mode or PC required** for your playtesters.
-2. The developer provides a **Public App Lab URL** or a **Release Channel Invite Link** (generated from the [Meta Quest Developer Dashboard](https://developer.oculus.com/manage/) under **Distribution** > **Release Channels** > **Alpha** > **Invite Links**).
-3. The playtester opens the link on their phone/browser, clicks **Accept / Get**, and the app automatically downloads into their Meta Quest 3 headset with full support for future automatic updates.
+You can install and playtest **Ecosystem Choices** on your Meta Quest headset using either of the following two options:
 
 ---
 
-### Method 2: Sideloading the Standalone APK (SideQuest / MQDH / ADB)
-For playtesters downloading the compiled `.apk` directly from GitHub Releases:
+### Option 1: Official Meta App Page / App Lab Link *(Recommended — 1-Click Install)*
 
-#### A. Requirements:
-- A Meta Quest 3 or Quest 2 headset.
-- A USB-C cable (or Wi-Fi if wireless ADB is configured).
-- A free [SideQuest](https://sidequestvr.com/) account (Desktop or Web installer).
+> 🔗 **Official Meta Page**: **[👉 Open Ecosystem Choices on Meta Quest Store / App Lab](https://www.meta.com/experiences/)**  
+> *(Click the link on your mobile phone or browser, log in with your Meta account, and click **"Get"** or **"Accept Invite"**. The app will automatically appear in your Meta Quest App Library ready to download and play!)*
+
+- **Zero PC or cables needed**: Installs directly over Wi-Fi to your Quest 3 or Quest 2.
+- **Automatic updates**: Future patches and builds will update automatically in your headset.
+- **No Developer Mode required**: Ideal for all standard users and playtesters.
+
+---
+
+### Option 2: Sideload Standalone APK from GitHub Releases *(SideQuest / ADB)*
+
+For playtesters who prefer manual installation or offline play:
+
+> 📦 **Download Standalone APK**: **[👉 Download Latest Release](../../releases)**
+
+#### Requirements:
+- A Meta Quest 3, Quest 2, or Quest Pro headset with **Developer Mode enabled**.
+- A USB-C cable (or wireless ADB).
+- [SideQuest](https://sidequestvr.com/) (Desktop app or [Web Browser Installer](https://sdq.st/download)).
 
 #### B. Installation Steps via SideQuest:
 1. Download the latest `Ecosystem_Choices_vXX.apk` from the **[Releases](../../releases)** section of this repository.
