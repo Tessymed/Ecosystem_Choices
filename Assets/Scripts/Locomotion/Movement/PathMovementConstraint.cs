@@ -379,6 +379,7 @@ namespace EcosystemChoices.Locomotion
 
         /// <summary>
         /// Smoothly constrains a proposed move position so it stays within the allowed path + bleed margin.
+        /// Uses smooth boundary sliding rather than abrupt snapping to eliminate walking jitter.
         /// </summary>
         public Vector3 ConstrainPosition(Vector3 currentPosition, Vector3 targetPosition)
         {
@@ -390,19 +391,35 @@ namespace EcosystemChoices.Locomotion
             }
 
             // Target position exceeds allowed bleed distance.
-            // Clamp horizontal offset from nearest path point to allowedBleedDistance.
-            Vector3 offset = targetPosition - nearestPathPoint;
-            Vector3 horizontalOffset = new Vector3(offset.x, 0f, offset.z);
+            // Smoothly slide along boundary line rather than abruptly snapping to discrete sample points!
+            Vector3 proposedDelta = targetPosition - currentPosition;
+            Vector3 toPath = nearestPathPoint - currentPosition;
+            toPath.y = 0f;
 
-            if (horizontalOffset.sqrMagnitude > 0.001f)
+            if (toPath.sqrMagnitude > 0.0001f)
             {
-                Vector3 clampedHorizontal = horizontalOffset.normalized * allowedBleedDistance;
-                Vector3 correctedPosition = nearestPathPoint + clampedHorizontal;
-                correctedPosition.y = targetPosition.y; // preserve height
-                return correctedPosition;
+                Vector3 pathNormal = toPath.normalized; // Inward direction toward valid path
+                float dot = Vector3.Dot(proposedDelta, pathNormal);
+
+                // If steering back toward the path, allow full movement immediately
+                if (dot > 0f)
+                {
+                    return targetPosition;
+                }
+
+                // If steering outward away from path, strip outward velocity so player smoothly slides along path edge
+                Vector3 outwardComponent = Vector3.Project(proposedDelta, -pathNormal);
+                if (Vector3.Dot(outwardComponent, -pathNormal) > 0f)
+                {
+                    proposedDelta -= outwardComponent;
+                }
+
+                Vector3 slideTarget = currentPosition + proposedDelta;
+                slideTarget.y = targetPosition.y;
+                return slideTarget;
             }
 
-            return nearestPathPoint;
+            return currentPosition;
         }
 
         private void OnDrawGizmosSelected()

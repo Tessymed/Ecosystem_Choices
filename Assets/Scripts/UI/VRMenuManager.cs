@@ -251,11 +251,21 @@ namespace EcosystemChoices.UI
                 // Only record original camera parameters once
                 if (!cameraBackups.Exists(b => b.cam == c))
                 {
+                    int origMask = c.cullingMask;
+                    // Guard: if camera was already culled or 0, default to full scene (~0)
+                    if (origMask == uiMask || origMask == 0) origMask = ~0;
+
+                    CameraClearFlags origClear = c.clearFlags;
+                    if (origClear == CameraClearFlags.SolidColor && c.backgroundColor == Color.black)
+                    {
+                        origClear = CameraClearFlags.Skybox;
+                    }
+
                     cameraBackups.Add(new CameraBackup
                     {
                         cam = c,
-                        cullingMask = c.cullingMask,
-                        clearFlags = c.clearFlags,
+                        cullingMask = origMask,
+                        clearFlags = origClear,
                         bgColor = c.backgroundColor
                     });
                 }
@@ -268,18 +278,35 @@ namespace EcosystemChoices.UI
 
         private void RestoreSceneCulling()
         {
+            int uiLayer = LayerMask.NameToLayer("UI");
+            int uiMask = (1 << uiLayer);
+
             foreach (var b in cameraBackups)
             {
                 if (b.cam != null)
                 {
-                    b.cam.clearFlags = b.clearFlags;
+                    b.cam.clearFlags = (b.clearFlags == CameraClearFlags.SolidColor) ? CameraClearFlags.Skybox : b.clearFlags;
                     b.cam.backgroundColor = b.bgColor;
-                    b.cam.cullingMask = b.cullingMask;
+                    b.cam.cullingMask = (b.cullingMask == uiMask || b.cullingMask == 0) ? ~0 : b.cullingMask;
                 }
             }
 
-            // Fallback for main camera if list was empty
-            if (cameraBackups.Count == 0 && Camera.main != null)
+            // Fallback & guarantee for all cameras in scene (CenterEyeAnchor, Camera.main, etc.)
+            Camera[] allCams = Object.FindObjectsByType<Camera>(FindObjectsInactive.Include);
+            foreach (Camera c in allCams)
+            {
+                if (c == null) continue;
+                if (c.cullingMask == uiMask || c.cullingMask == 0)
+                {
+                    c.cullingMask = ~0;
+                }
+                if (c.clearFlags == CameraClearFlags.SolidColor)
+                {
+                    c.clearFlags = CameraClearFlags.Skybox;
+                }
+            }
+
+            if (Camera.main != null)
             {
                 Camera.main.clearFlags = CameraClearFlags.Skybox;
                 Camera.main.cullingMask = ~0;
@@ -298,20 +325,27 @@ namespace EcosystemChoices.UI
 
         private void ApplyZTestAlwaysToCards()
         {
-            Shader uiShader = Shader.Find("UI/Default");
-            if (uiShader == null) uiShader = Shader.Find("Universal Render Pipeline/Unlit");
-
-            if (uiShader != null)
+            try
             {
-                Material uiCardMat = new Material(uiShader);
-                uiCardMat.SetInt("unity_GUIZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
-                uiCardMat.renderQueue = 3000;
+                Shader uiShader = Shader.Find("UI/Default");
+                if (uiShader == null) uiShader = Shader.Find("Universal Render Pipeline/Unlit");
 
-                RawImage[] images = GetComponentsInChildren<RawImage>(true);
-                foreach (var img in images)
+                if (uiShader != null)
                 {
-                    img.material = uiCardMat;
+                    Material uiCardMat = new Material(uiShader);
+                    uiCardMat.SetInt("unity_GUIZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
+                    uiCardMat.renderQueue = 3000;
+
+                    RawImage[] images = GetComponentsInChildren<RawImage>(true);
+                    foreach (var img in images)
+                    {
+                        img.material = uiCardMat;
+                    }
                 }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning("[VRMenuManager] Notice applying ZTest: " + ex.Message);
             }
         }
 
@@ -431,19 +465,20 @@ namespace EcosystemChoices.UI
                 menuAudioSource.PlayOneShot(startChime, 0.95f);
             }
 
-            // 2. Disable UI raycaster laser
+            // 2. Disable UI raycaster laser immediately
             if (rightRaycaster != null)
             {
                 rightRaycaster.enabled = false;
             }
 
             // 3. Animate UI Card disappearance (shrink inward smoothly)
+            float shrinkDuration = 0.35f;
             float elapsed = 0f;
             Vector3 curScale = transform.localScale;
-            while (elapsed < 0.35f)
+            while (elapsed < shrinkDuration)
             {
                 elapsed += Time.deltaTime;
-                float t = elapsed / 0.35f;
+                float t = Mathf.Clamp01(elapsed / shrinkDuration);
                 transform.localScale = Vector3.Lerp(curScale, Vector3.zero, t * t);
                 yield return null;
             }
@@ -454,81 +489,96 @@ namespace EcosystemChoices.UI
             if (aboutCard != null) aboutCard.SetActive(false);
             if (quitCard != null) quitCard.SetActive(false);
 
-            // 4. Create fullscreen black fade quad attached to player HMD
-            if (playerHmd == null) FindPlayerHmd();
+            // 4. Create Screen Fade Overlay (WorldSpace Canvas pinned to HMD, 100% shader-independent)
+            GameObject fadeCanvasObj = null;
+            CanvasGroup fadeGroup = null;
 
-            GameObject fadeQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            fadeQuad.name = "VR_ScreenFade_Quad";
-            var col = fadeQuad.GetComponent<Collider>();
-            if (col != null) Destroy(col);
+            if (playerHmd == null) FindPlayerHmd();
 
             if (playerHmd != null)
             {
-                fadeQuad.transform.SetParent(playerHmd, false);
-                fadeQuad.transform.localPosition = new Vector3(0f, 0f, 0.25f);
-                fadeQuad.transform.localRotation = Quaternion.identity;
-                fadeQuad.transform.localScale = new Vector3(3f, 3f, 1f);
+                try
+                {
+                    fadeCanvasObj = new GameObject("VR_ScreenFade_Canvas");
+                    fadeCanvasObj.transform.SetParent(playerHmd, false);
+                    fadeCanvasObj.transform.localPosition = new Vector3(0f, 0f, 0.25f);
+                    fadeCanvasObj.transform.localRotation = Quaternion.identity;
+                    fadeCanvasObj.transform.localScale = Vector3.one * 0.001f;
+
+                    Canvas canvas = fadeCanvasObj.AddComponent<Canvas>();
+                    canvas.renderMode = RenderMode.WorldSpace;
+                    canvas.sortingOrder = 32767;
+
+                    fadeGroup = fadeCanvasObj.AddComponent<CanvasGroup>();
+                    fadeGroup.alpha = 1f;
+
+                    GameObject blackPanel = new GameObject("BlackOverlay");
+                    blackPanel.transform.SetParent(fadeCanvasObj.transform, false);
+                    RectTransform rt = blackPanel.AddComponent<RectTransform>();
+                    rt.sizeDelta = new Vector2(6000f, 6000f);
+
+                    Image img = blackPanel.AddComponent<Image>();
+                    img.color = Color.black;
+                    img.raycastTarget = false;
+
+                    int uiLayer = LayerMask.NameToLayer("UI");
+                    fadeCanvasObj.layer = uiLayer;
+                    blackPanel.layer = uiLayer;
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning("[VRMenuManager] Notice creating fade canvas: " + ex.Message);
+                }
             }
 
-            Shader unlitShader = Shader.Find("Universal Render Pipeline/Unlit");
-            if (unlitShader == null) unlitShader = Shader.Find("Unlit/Color");
-
-            Material fadeMat = new Material(unlitShader);
-            fadeMat.SetFloat("_Surface", 1); // Transparent
-            fadeMat.SetFloat("_Blend", 0);   // Alpha
-            fadeMat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            fadeMat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            fadeMat.SetInt("_ZWrite", 0);
-            fadeMat.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.Always);
-            fadeMat.renderQueue = 4000; // Overlay queue (draws over EVERYTHING)
-            fadeMat.SetColor("_BaseColor", Color.black);
-            fadeMat.SetColor("_Color", Color.black);
-
-            var mr = fadeQuad.GetComponent<MeshRenderer>();
-            if (mr != null) mr.material = fadeMat;
-
-            fadeQuad.layer = LayerMask.NameToLayer("UI");
-
-            // 5. Restore full 3D camera rendering behind the black fade quad
+            // 5. Restore full 3D camera rendering behind the black fade canvas
             RestoreSceneCulling();
 
-            // 6. Smooth Cinematic Fade-In over fadeDuration (1.8s)
-            // Lerps fadeQuad alpha from 1.0 -> 0.0, and AudioListener.volume from 0.0 -> 1.0
-            float fadeElapsed = 0f;
-            while (fadeElapsed < fadeDuration)
+            try
             {
-                fadeElapsed += Time.deltaTime;
-                float progress = Mathf.Clamp01(fadeElapsed / fadeDuration);
-                float smoothT = Mathf.SmoothStep(0f, 1f, progress);
+                // 6. Smooth Cinematic Fade-In over fadeDuration (1.8s)
+                float fadeElapsed = 0f;
+                while (fadeElapsed < fadeDuration)
+                {
+                    fadeElapsed += Time.deltaTime;
+                    float progress = Mathf.Clamp01(fadeElapsed / fadeDuration);
+                    float smoothT = Mathf.SmoothStep(0f, 1f, progress);
 
-                Color c = Color.black;
-                c.a = 1f - smoothT;
-                fadeMat.SetColor("_BaseColor", c);
-                fadeMat.SetColor("_Color", c);
+                    if (fadeGroup != null)
+                    {
+                        fadeGroup.alpha = 1f - smoothT;
+                    }
 
-                // Ambient world audio gently swells into the user's ears
-                AudioListener.volume = smoothT;
+                    // Ambient world audio gently swells into the user's ears
+                    AudioListener.volume = smoothT;
 
-                yield return null;
+                    yield return null;
+                }
             }
-
-            // Cleanup fade quad
-            Destroy(fadeQuad);
-
-            // 7. Restore full audio volume and enable river sound
-            AudioListener.volume = 1f;
-            var riverCtrl = FindAnyObjectByType<EcosystemChoices.Environment.RiverSoundController>();
-            if (riverCtrl != null)
+            finally
             {
-                riverCtrl.enabled = true;
-                riverCtrl.EnsureAudioPlaying();
+                // 7. GUARANTEED STATE RESTORATION & CLEANUP
+                if (fadeCanvasObj != null)
+                {
+                    Destroy(fadeCanvasObj);
+                }
+
+                // Restore full audio volume and river sound
+                AudioListener.volume = 1f;
+                var riverCtrl = FindAnyObjectByType<EcosystemChoices.Environment.RiverSoundController>();
+                if (riverCtrl != null)
+                {
+                    riverCtrl.enabled = true;
+                    riverCtrl.EnsureAudioPlaying();
+                }
+
+                // Guarantee full camera rendering and player locomotion
+                RestoreSceneCulling();
+                SetLocomotionActive(true);
+                if (rightRaycaster != null) rightRaycaster.enabled = false;
+
+                Debug.Log("[VRMenuManager] Experience started smoothly! Player in position with zero camera drop.");
             }
-
-            // 8. Enable Locomotion & Rotation WITHOUT ANY TELEPORT OR SNAPPING!
-            // Player is already standing right on the ground at the designated position.
-            SetLocomotionActive(true);
-
-            Debug.Log("[VRMenuManager] Experience started smoothly! Player in position with zero camera drop.");
         }
 
         // ================= Mid-Experience Pause / Quit System =================

@@ -49,7 +49,7 @@ namespace EcosystemChoices.Locomotion
 
         [Header("Gravity & Slope Settings")]
         [SerializeField] private float gravity = -9.81f;
-        [SerializeField] private float groundedGroundedGravity = -2.0f;
+        [SerializeField] private float groundedGroundedGravity = -0.5f;
         [SerializeField] private float slowSlopeAngleThreshold = 30.0f;
         [SerializeField] private float maxSlopeLimit = 45.0f;
 
@@ -86,7 +86,7 @@ namespace EcosystemChoices.Locomotion
 
             if (characterController != null)
             {
-                characterController.stepOffset = 0.20f;
+                characterController.stepOffset = 0.08f;
                 characterController.slopeLimit = maxSlopeLimit;
             }
         }
@@ -165,8 +165,14 @@ namespace EcosystemChoices.Locomotion
             }
 
             float clampedHeight = Mathf.Clamp(headHeight, minCapsuleHeight, maxCapsuleHeight);
-            characterController.height = clampedHeight;
-            characterController.center = new Vector3(characterController.center.x, clampedHeight * 0.5f, characterController.center.z);
+            
+            // Deadband filter: only update capsule geometry if height changed meaningfully (> 6 cm)
+            // Rebuilding the capsule every frame on sub-centimeter head tremors causes violent PhysX vertical oscillation!
+            if (Mathf.Abs(characterController.height - clampedHeight) > 0.06f)
+            {
+                characterController.height = clampedHeight;
+                characterController.center = new Vector3(0f, clampedHeight * 0.5f, 0f);
+            }
         }
 
         private Vector2 ReadInput()

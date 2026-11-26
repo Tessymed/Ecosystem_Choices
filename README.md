@@ -115,44 +115,66 @@ The prototype delivers a fully realized, comfort-focused VR ecosystem exploratio
 
 ---
 
-## 📦 Meta Quest 3 Build & Deployment Guide
+## 📦 Meta Quest 3 Build & Playtester Installation Guide
 
-Follow these steps to produce an optimized standalone APK for **Meta Quest 3**:
+There are two primary ways for external playtesters to install and experience **Ecosystem Choices**:
+
+### Method 1: Meta App Lab Shareable Link (Recommended - Zero Cable / Zero Dev Mode)
+If you have uploaded the build to Meta App Lab (Alpha, Beta, or App Lab Store):
+1. **No Developer Mode or PC required** for your playtesters.
+2. The developer provides a **Public App Lab URL** or a **Release Channel Invite Link** (generated from the [Meta Quest Developer Dashboard](https://developer.oculus.com/manage/) under **Distribution** > **Release Channels** > **Alpha** > **Invite Links**).
+3. The playtester opens the link on their phone/browser, clicks **Accept / Get**, and the app automatically downloads into their Meta Quest 3 headset with full support for future automatic updates.
+
+---
+
+### Method 2: Sideloading the Standalone APK (SideQuest / MQDH / ADB)
+For playtesters downloading the compiled `.apk` directly from GitHub Releases:
+
+#### A. Requirements:
+- A Meta Quest 3 or Quest 2 headset.
+- A USB-C cable (or Wi-Fi if wireless ADB is configured).
+- A free [SideQuest](https://sidequestvr.com/) account (Desktop or Web installer).
+
+#### B. Installation Steps via SideQuest:
+1. Download the latest `Ecosystem_Choices_vXX.apk` from the **[Releases](../../releases)** section of this repository.
+2. Open **SideQuest** on your PC/Mac (or navigate to https://sdq.st/download on a WebUSB-compatible browser like Chrome/Edge).
+3. Connect your Quest 3 to your computer via USB-C and put on the headset to click **"Allow USB Debugging"**.
+4. In SideQuest, click the **"Install APK file from folder on computer"** icon (an icon of a folder with a downward arrow in the top right header).
+5. Select the downloaded `.apk` file. SideQuest will install the package.
+6. **Launching the Game**:
+   - Put on your Quest 3.
+   - Open your **App Library** (grid icon in the universal menu).
+   - In the search/filter dropdown in the upper right (which defaults to "All"), select **Unknown Sources**.
+   - Click **Ecosystem Choices** to launch the experience.
+
+#### C. Installation Steps via Command Line (ADB):
+```bash
+adb install -r Ecosystem_Choices_v04.apk
+```
+
+---
+
+## 🛠️ Building the Standalone APK from Source
+
+Follow these steps in Unity to produce an optimized standalone APK for **Meta Quest 3**:
 
 ### Step 1: Switch Platform to Android
 1. In Unity Editor, go to **File** > **Build Profiles** (or **Build Settings**).
-2. Under **Platform**, select **Android**.
+2. Under **Platform**, select **Android (Meta Quest)**.
 3. Set **Texture Compression** to **ASTC**.
-4. Click **Switch Platform** and allow Unity to re-import assets for Android.
+4. Click **Switch Platform**.
 
-### Step 2: Verify XR Plug-in Management
-1. Open **Edit** > **Project Settings** > **XR Plug-in Management**.
-2. Switch to the **Android** tab (robot icon).
-3. Ensure **OpenXR** is checked.
-4. Under the **OpenXR** sub-tree:
-   - Ensure the **Meta Quest Support** feature group is enabled.
-   - In **Interaction Profiles**, ensure **Oculus Touch Controller Profile** and **Meta Quest Touch Plus Controller Profile** are added.
-5. In **Project Settings** > **Player** > **Android tab**:
-   - **Color Space**: Linear.
-   - **Graphics API**: Vulkan (or OpenGLES3 fallback).
-   - **Minimum API Level**: Android 10.0 (API Level 29) or Android 12.0 (API Level 32).
-   - **Target API Level**: Automatic (highest installed) or API Level 34.
-   - **Scripting Backend**: IL2CPP.
-   - **Target Architectures**: ARM64 checked (ARMv7 unchecked).
+### Step 2: Graphics & Quest 3 Runtime Optimizations
+This project includes pre-configured pipeline optimizations in `Mobile_RPAsset.asset`:
+- **URP Depth & Opaque Textures**: Enabled with $2\times$ downsampling for realistic water refractions, shoreline foam, and depth gradients.
+- **HDR & Native Render Scale**: Enabled with $1.0\times$ native resolution and soft shadow filtering for vibrant, high-fidelity lighting.
+- **72 Hz Physics Lockstep**: `Time.fixedDeltaTime = 0.013888889` (72 Hz) and V-Sync enabled to eliminate micro-stuttering.
+- **Anti-Jitter Capsule Filter**: 6 cm deadband height adjustment and 8 cm step offset preventing ground penetration vibration over low-poly terrain.
+- **Trail Sliding Constraint**: Smooth tangent sliding along trail edges instead of hard boundary snapping.
 
 ### Step 3: Build Standalone APK
-1. In **File** > **Build Settings**, verify `Assets/Scenes/SampleScene.unity` is checked in **Scenes In Build**.
-2. Click **Build** (or **Build and Run** if your Quest 3 is connected via USB-C with Developer Mode enabled).
-3. Choose a destination folder and filename, e.g. `Builds/Ecosystem_Choices_Quest3.apk`.
-
-### Step 4: Install to Meta Quest 3
-- **Option A (Meta Quest Developer Hub / MQDH)**: Drag and drop the built `.apk` directly into MQDH under **Device Manager** > **Apps**.
-- **Option B (SideQuest)**: Connect Quest 3 via USB-C, click the **Install APK** button in the top menu bar, and select the `.apk`.
-- **Option C (Command Line / ADB)**:
-  ```bash
-  adb install -r Builds/Ecosystem_Choices_Quest3.apk
-  ```
-- **Launching on Quest 3**: Put on the headset, navigate to **App Library**, change the filter in the top right to **Unknown Sources**, and select **Ecosystem Choices**.
+1. In **File** > **Build Settings**, verify `Assets/Scenes/SampleScene.unity` is checked.
+2. Click **Build** and output the APK (e.g. `Builds/Ecosystem_Choices_v04.apk`).
 
 ---
 

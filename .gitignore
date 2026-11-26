@@ -115,3 +115,8 @@ InitTestScene*.unity*
 *~
 *.ps1
 
+# IL2CPP build backup symbols & recovery
+*_BackUpThisFolder_ButDontShipItWithYourGame/
+Assets/_Recovery/
+Assets/_Recovery.meta
+

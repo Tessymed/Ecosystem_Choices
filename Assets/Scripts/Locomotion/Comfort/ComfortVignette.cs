@@ -89,12 +89,15 @@ namespace EcosystemChoices.Locomotion
 
         private void OnGUI()
         {
+#if UNITY_EDITOR
+            if (UnityEngine.XR.XRSettings.isDeviceActive) return;
             if (!vignetteEnabled || currentVignetteAlpha <= 0.01f || vignetteTexture == null) return;
 
             Color originalColor = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, currentVignetteAlpha);
             GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), vignetteTexture);
             GUI.color = originalColor;
+#endif
         }
 
         private void OnDestroy()

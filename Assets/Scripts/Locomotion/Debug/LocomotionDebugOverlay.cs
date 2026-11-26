@@ -30,6 +30,8 @@ namespace EcosystemChoices.Locomotion
 
         private void OnGUI()
         {
+#if UNITY_EDITOR
+            if (UnityEngine.XR.XRSettings.isDeviceActive) return;
             if (!showOverlay) return;
 
             float speed = continuousLocomotion != null ? continuousLocomotion.CurrentSpeed : 0f;
@@ -51,6 +53,7 @@ namespace EcosystemChoices.Locomotion
             GUILayout.Label($"Surface: {surfaceStr}");
             GUILayout.Label($"POI Speed Scale: {modifier:F2}");
             GUILayout.EndArea();
+#endif
         }
 
         private void OnDrawGizmos()

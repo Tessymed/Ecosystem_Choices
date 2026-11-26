@@ -60,11 +60,15 @@ namespace EcosystemChoices.UI
             // Shader resolution for URP
             Shader unlitShader = Shader.Find("Universal Render Pipeline/Unlit");
             if (unlitShader == null) unlitShader = Shader.Find("Sprites/Default");
+            if (unlitShader == null) unlitShader = Shader.Find("UI/Default");
 
-            laserMat = new Material(unlitShader);
-            laserMat.SetColor("_BaseColor", laserColor);
-            laserMat.SetColor("_Color", laserColor);
-            lineRenderer.material = laserMat;
+            if (unlitShader != null)
+            {
+                laserMat = new Material(unlitShader);
+                laserMat.SetColor("_BaseColor", laserColor);
+                laserMat.SetColor("_Color", laserColor);
+                lineRenderer.material = laserMat;
+            }
             lineRenderer.enabled = enableLaser;
 
             int uiLayer = LayerMask.NameToLayer("UI");
@@ -81,7 +85,7 @@ namespace EcosystemChoices.UI
             if (col != null) DestroyImmediate(col);
 
             Renderer retRend = reticleObj.GetComponent<Renderer>();
-            if (retRend != null)
+            if (retRend != null && unlitShader != null)
             {
                 Material retMat = new Material(unlitShader);
                 retMat.SetColor("_BaseColor", hoverLaserColor);
