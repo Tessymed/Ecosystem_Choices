@@ -1,6 +1,6 @@
 # Ecosystem Choices - XR Locomotion, Biodiversity & Ecological Simulation
 
-[![Meta Quest App Lab](https://img.shields.io/badge/Meta%20Quest-Play%20on%20App%20Lab-0082FB?style=for-the-badge&logo=meta&logoColor=white)](https://www.meta.com/experiences/)
+[![Meta Quest App Lab](https://img.shields.io/badge/Meta%20Quest-Play%20on%20App%20Lab-0082FB?style=for-the-badge&logo=meta&logoColor=white)](https://www.meta.com/s/6GpzADUfo)
 [![Download APK](https://img.shields.io/badge/GitHub-Download%20APK-24292e?style=for-the-badge&logo=github&logoColor=white)](../../releases)
 
 [![Unity 6](https://img.shields.io/badge/Unity-6000.6.10f1-blue.svg)](https://unity.com/)
